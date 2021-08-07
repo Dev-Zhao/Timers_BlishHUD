@@ -1,0 +1,57 @@
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\manifest.json
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\CSCore.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\Gw2Sharp.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\Microsoft.Bcl.AsyncInterfaces.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\System.Buffers.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\System.Memory.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\System.Runtime.CompilerServices.Unsafe.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\System.Text.Encodings.Web.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\System.Text.Json.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\System.Threading.Tasks.Extensions.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\CSCore.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\Gw2Sharp.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\Microsoft.Bcl.AsyncInterfaces.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\System.Buffers.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\System.Memory.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\System.Runtime.CompilerServices.Unsafe.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\System.Text.Encodings.Web.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\System.Text.Json.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\System.Threading.Tasks.Extensions.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\obj\x64\Debug\Timers_BlishHUD.csprojAssemblyReference.cache
+C:\Users\Charlie\Desktop\Timers_BlishHUD\obj\x64\Debug\Timers_BlishHUD.csproj.CoreCompileInputs.cache
+C:\Users\Charlie\Desktop\Timers_BlishHUD\obj\x64\Debug\Timers_BlishHUD.csproj.CopyComplete
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.Direct2D1.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.Direct3D11.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.Direct3D9.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.DXGI.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.Mathematics.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.MediaFoundation.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.XAudio2.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.XInput.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.pdb
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.Direct2D1.pdb
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.Direct2D1.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.Direct3D11.pdb
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.Direct3D11.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.Direct3D9.pdb
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.Direct3D9.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.DXGI.pdb
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.DXGI.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.Mathematics.pdb
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.Mathematics.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.MediaFoundation.pdb
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.MediaFoundation.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.XAudio2.pdb
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.XAudio2.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.XInput.pdb
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\SharpDX.XInput.xml
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\Timers_BlishHUD.dll.config
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\Timers_BlishHUD.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\Timers_BlishHUD.pdb
+C:\Users\Charlie\Desktop\Timers_BlishHUD\obj\x64\Debug\Timers_BlishHUD.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\obj\x64\Debug\Timers_BlishHUD.pdb
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\Blish HUD.exe
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\de\Blish HUD.resources.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\es\Blish HUD.resources.dll
+C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\fr\Blish HUD.resources.dll

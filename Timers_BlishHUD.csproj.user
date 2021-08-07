@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <StartAction>Program</StartAction>
+    <StartArguments>--debug --module "C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\Timers_BlishHUD.bhm"</StartArguments>
+    <StartProgram>C:\Program Files %28x86%29\Guild Wars 2\Blish.HUD.0.8.0\Blish HUD.exe</StartProgram>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,190 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms.VisualStyles;
+using Blish_HUD;
+using Blish_HUD.Content;
+using Blish_HUD.Controls;
+using Charr.Timers_BlishHUD.Controls;
+using Charr.Timers_BlishHUD.Pathing.Content;
+using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
+
+namespace Charr.Timers_BlishHUD.Models {
+    public class Alert : IDisposable {
+        // Serialized
+        [JsonProperty("uid")] public string UID { get; set; }
+        [JsonProperty("warningDuration")] public float WarningDuration { get; set; } = 15.0f;
+        [JsonProperty("alertDuration")] public float AlertDuration { get; set; } = 5.0f;
+        [JsonProperty("warning")] public string WarningText { get; set; }
+        [JsonProperty("warningColor")] public List<float> WarningTextColor { get; set; }
+        [JsonProperty("alert")] public string AlertText { get; set; }
+        [JsonProperty("alertColor")] public List<float> AlertTextColor { get; set; }
+        [JsonProperty("icon")] public string IconString { get; set; } = "raid";
+        [JsonProperty("fillColor")] public List<float> FillColor { get; set; }
+        [JsonProperty("timestamps")] public List<float> Timestamps { get; set; }
+
+        // Non-serialized properties
+        public bool Activated {
+            get { return _activated; }
+            set {
+                if (value)
+                    Activate();
+                else
+                    Deactivate();
+            }
+        }
+
+        public bool ShowAlert {
+            get { return _showAlert; }
+            set {
+                if (activePanels != null) {
+                    foreach (var entry in activePanels) {
+                        entry.Value.ShouldShow = value;
+                    }
+                }
+
+                _showAlert = value;
+            }
+        }
+
+        public Color Fill { get; set; } = Color.DarkGray;
+        public Color WarningColor { get; set; } = Color.White;
+        public Color AlertColor { get; set; } = Color.White;
+        public AsyncTexture2D Icon { get; set; }
+        public Dictionary<float, AlertPanel> activePanels { get; set; }
+
+        // Private members
+        private bool _activated;
+        private bool _showAlert = true;
+
+        public string Initialize(PathableResourceManager resourceManager) {
+            if (string.IsNullOrEmpty(WarningText))
+                WarningDuration = 0;
+            if (string.IsNullOrEmpty(AlertText))
+                AlertDuration = 0;
+
+            if (Timestamps == null || Timestamps.Count == 0)
+                return WarningText + "/" + AlertText + " timestamps property invalid";
+
+            Fill = Resources.ParseColor(Fill, FillColor);
+            WarningColor = Resources.ParseColor(WarningColor, WarningTextColor);
+            AlertColor = Resources.ParseColor(AlertColor, AlertTextColor);
+
+            Icon = TimersModule.ModuleInstance.Resources.GetIcon(IconString);
+            if (Icon == null)
+                Icon = resourceManager.LoadTexture(IconString);
+
+            activePanels = new Dictionary<float, AlertPanel>();
+
+            return null;
+        }
+
+        public void Activate() {
+            if (Activated || activePanels == null) {
+                return;
+            }
+
+            _activated = true;
+        }
+
+        public void Stop() {
+            if (!Activated) {
+                return;
+            }
+            Dispose();
+        }
+
+        public void Deactivate() {
+            if (!Activated) {
+                return;
+            }
+
+            Dispose();
+            _activated = false;
+        }
+
+        private AlertPanel CreatePanel() {
+            AlertPanel panel = new AlertPanel {
+                Parent = TimersModule.ModuleInstance._alertContainer,
+                ControlPadding = new Vector2(8, 8),
+                PadLeftBeforeControl = true,
+                PadTopBeforeControl = true,
+                Text = (string.IsNullOrEmpty(WarningText)) ? AlertText : WarningText,
+                TextColor = (string.IsNullOrEmpty(WarningText)) ? AlertColor : WarningColor,
+                Icon = Texture2DExtension.Duplicate(Icon),
+                FillColor = Fill,
+                MaxFill = (string.IsNullOrEmpty(WarningText)) ? 0.0f : WarningDuration,
+                CurrentFill = 0.0f,
+                ShouldShow = ShowAlert
+            };
+            TimersModule.ModuleInstance._alertContainer.UpdateDisplay();
+            return panel;
+        }
+
+        public void Update(float elapsedTime) {
+            if (!Activated) {
+                return;
+            }
+
+            foreach (float time in Timestamps) {
+                AlertPanel activePanel;
+                if (!activePanels.TryGetValue(time, out activePanel)) {
+                    if (string.IsNullOrEmpty(WarningText) &&
+                        elapsedTime >= time &&
+                        elapsedTime < time + AlertDuration) {
+                        // If no warning, initialize on alert
+                        activePanels.Add(time, CreatePanel());
+                    }
+                    else if (!string.IsNullOrEmpty(WarningText) &&
+                             elapsedTime >= time - WarningDuration &&
+                             elapsedTime < time + AlertDuration) {
+                        // If warning, initialize any time in duration
+                        activePanels.Add(time, CreatePanel());
+                    }
+                }
+                else {
+                    // For on-going timers...
+                    float activeTime = elapsedTime - (time - WarningDuration);
+                    if (activeTime >= WarningDuration + AlertDuration) {
+                        activePanel.Dispose();
+                        activePanels.Remove(time);
+                    }
+                    else if (activeTime >= WarningDuration) {
+                        // Show alert text on completed timers.
+                        if (activePanel.CurrentFill != WarningDuration)
+                            activePanel.CurrentFill = WarningDuration;
+                        activePanel.Text = (string.IsNullOrEmpty(AlertText)) ? WarningText : AlertText;
+                        activePanel.TimerText = "";
+                        activePanel.TextColor = AlertColor;
+                    }
+                    else {
+                        // Update incomplete timers.
+                        activePanel.CurrentFill = activeTime + TimersModule.ModuleInstance.Resources.TICKINTERVAL;
+                        if ((WarningDuration - activeTime) < 5) {
+                            activePanel.TimerText = ((float)Math.Round((decimal)(WarningDuration - activeTime), 1))
+                                .ToString("0.0");
+                            activePanel.TimerTextColor = Color.Yellow;
+                        }
+                        else {
+                            activePanel.TimerText =
+                                ((float)Math.Floor((decimal)(WarningDuration - activeTime))).ToString();
+                        }
+                    }
+                }
+            }
+        }
+
+        public void Dispose() {
+            if (activePanels != null) {
+                foreach (KeyValuePair<float, AlertPanel> entry in activePanels) {
+                    entry.Value.Dispose();
+                }
+                activePanels.Clear();
+            }
+        }
+    }
+}
