@@ -89,15 +89,15 @@ namespace Charr.Timers_BlishHUD.Controls {
         }
 
         private void ChangedChildOnResized(object sender, ResizedEventArgs e) {
-            ReflowChildLayout(_children);
+            ReflowChildLayout(_children.ToArray());
         }
 
         private void OnChildrenChanged(ChildChangedEventArgs e) {
-            ReflowChildLayout(e.ResultingChildren);
+            ReflowChildLayout(e.ResultingChildren.ToArray());
         }
 
         public override void RecalculateLayout() {
-            ReflowChildLayout(_children);
+            ReflowChildLayout(_children.ToArray());
 
             base.RecalculateLayout();
         }
@@ -109,7 +109,7 @@ namespace Charr.Timers_BlishHUD.Controls {
         /// </summary>
         public void FilterChildren<TControl>(Func<TControl, bool> filter) where TControl : Control {
             _children.Cast<TControl>().ToList().ForEach(tc => tc.Visible = filter(tc));
-            ReflowChildLayout(_children);
+            ReflowChildLayout(_children.ToArray());
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace Charr.Timers_BlishHUD.Controls {
 
             _children.AddRange(tempChildren);
 
-            ReflowChildLayout(_children);
+            ReflowChildLayout(_children.ToArray());
         }
 
         private void ReflowChildLayoutLeftToRight(IEnumerable<Control> allChildren) {
@@ -443,9 +443,8 @@ namespace Charr.Timers_BlishHUD.Controls {
             canChangeSize = true;
         }
 
-        private void ReflowChildLayout(IEnumerable<Control> allChildren) {
-            var filteredChildren = allChildren.ToList().Where(c => c.GetType() != typeof(Scrollbar)
-                                                                   && c.Visible);
+        private void ReflowChildLayout(Control[] allChildren) {
+            var filteredChildren = allChildren.Where(c => c.GetType() != typeof(Scrollbar) && c.Visible);
             switch (_flowDirection) {
                 case ControlFlowDirection.LeftToRight:
                     ReflowChildLayoutLeftToRight(filteredChildren);
@@ -582,7 +581,7 @@ namespace Charr.Timers_BlishHUD.Controls {
                 _newLocations.Clear();
                 _previousLocations.Clear();
                 _animMoves.Clear();
-                ReflowChildLayout(Children.ToList());
+                ReflowChildLayout(Children.ToArray());
             }
             _previousFlowDirection = FlowDirection;
 
@@ -629,7 +628,7 @@ namespace Charr.Timers_BlishHUD.Controls {
 
             if (!canChangeSize) {
                 SizeChanging = false;
-                ReflowChildLayout(Children.ToList());
+                ReflowChildLayout(Children.ToArray());
             }
             else if (previousWidth != _newWidth || previousHeight != _newHeight) {
                 _animSizeChange?.Cancel();
@@ -639,7 +638,7 @@ namespace Charr.Timers_BlishHUD.Controls {
                         Width = _newWidth;
                         SizeChanging = false;
                         noAnim = false;
-                        ReflowChildLayout(Children.ToList());
+                        ReflowChildLayout(Children.ToArray());
                         _animSizeChange = Animation.Tweener.Tween(this,
                                 new { Height = _newHeight },
                                 TimersModule.ModuleInstance._alertMoveDelaySetting.Value,
@@ -650,7 +649,7 @@ namespace Charr.Timers_BlishHUD.Controls {
                         Height = _newHeight;
                         SizeChanging = false;
                         noAnim = false;
-                        ReflowChildLayout(Children.ToList());
+                        ReflowChildLayout(Children.ToArray());
                         _animSizeChange = Animation.Tweener.Tween(this,
                             new { Width = _newWidth },
                             TimersModule.ModuleInstance._alertMoveDelaySetting.Value,
@@ -672,7 +671,7 @@ namespace Charr.Timers_BlishHUD.Controls {
                         _animSizeChange = null;
                     }
                     SizeChanging = true;
-                    ReflowChildLayout(Children.ToList());
+                    ReflowChildLayout(Children.ToArray());
                 });
 
                 _animSizeChange?.OnComplete(() => {
@@ -685,7 +684,7 @@ namespace Charr.Timers_BlishHUD.Controls {
                     }
 
                     SizeChanging = false;
-                    ReflowChildLayout(Children.ToList());
+                    ReflowChildLayout(Children.ToArray());
                     ContainerDragged?.Invoke(this, EventArgs.Empty);
                 });
             }
