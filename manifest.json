@@ -1,13 +1,13 @@
 {
   "name": "Timers",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "namespace": "Charr.Timers_BlishHUD",
   "package": "Timers_BlishHUD.dll",
   "manifest_version": 1,
 
   "description": "Supports countdown overlays for game-related mechanics.\n\nWhen this module is enabled, a new folder called 'timers' will be created under '...\\Documents\\Guild Wars 2\\addons\\blish hud\\timers'. Drag and drop timer files (.bhtimer) and their related assets into this folder to make them available to Blish HUD.\n\nSpecial thanks to FreeSnow and Temp",
   "dependencies": {
-    "bh.blishhud": ">=0.8.0"
+    "bh.blishhud": ">=0.10.0"
   },
   "url": "https://blishhud.com",
   "contributors": [

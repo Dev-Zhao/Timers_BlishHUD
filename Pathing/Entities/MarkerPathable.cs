@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
 using Blish_HUD;
-using Blish_HUD.Content;
 using Blish_HUD.Entities;
-using Blish_HUD.Entities.Primitives;
-using Blish_HUD.Input;
-using Blish_HUD.Pathing.Entities.Effects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -18,7 +13,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
         PlayerPosition,
     }
 
-    public class MarkerPathable : Entity
+    public class MarkerPathable : IEntity
     {
 
         private static readonly Logger Logger = Logger.GetLogger<MarkerPathable>();
@@ -229,17 +224,6 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
         }
 
         private bool _mouseOver = false;
-
-        private void InputOnMouseMoved(object sender, MouseEventArgs e)
-        {
-            var screenPosition = GameService.Graphics.GraphicsDevice.Viewport.Project(this.Position, GameService.Gw2Mumble.PlayerCamera.Projection, GameService.Gw2Mumble.PlayerCamera.View, Matrix.Identity);
-
-            float xdist = screenPosition.X - e.MouseState.Position.X;
-            float ydist = screenPosition.Y - e.MouseState.Position.Y;
-
-            // Z < 1 means that the point is in front of the camera, not behind it
-            _mouseOver = screenPosition.Z < 1 && xdist < 2 && ydist < 2;
-        }
 
     }
 }

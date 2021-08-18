@@ -72,7 +72,7 @@ namespace Charr.Timers_BlishHUD {
         private List<Encounter> _invalidEncounters;
 
         // New Map Loaded Event Listener
-        private EventHandler<EventArgs> _onNewMapLoaded;
+        private EventHandler<ValueEventArgs<int>> _onNewMapLoaded;
 
         // Settings
         private SettingEntry<bool> _showDebugSetting;
@@ -983,7 +983,7 @@ namespace Charr.Timers_BlishHUD {
         }
 
         protected override void OnModuleLoaded(EventArgs e) {
-            GameService.Pathing.NewMapLoaded += _onNewMapLoaded;
+            GameService.Gw2Mumble.CurrentMap.MapChanged += _onNewMapLoaded;
             _timersTab = GameService.Overlay.BlishHudWindow.AddTab("Timers",
                 ContentsManager.GetTexture(@"textures\155035small.png"), _tabPanel);
             // Base handler must be called
@@ -1015,18 +1015,18 @@ namespace Charr.Timers_BlishHUD {
             _debugText.Dispose();
 
             // Deregister event handlers
-            GameService.Pathing.NewMapLoaded -= _onNewMapLoaded;
-            _showDebugSetting.SettingChanged -= SettingsUpdateShowDebug;
-            _lockAlertContainerSetting.SettingChanged -= SettingsUpdateLockAlertContainer;
-            _centerAlertContainerSetting.SettingChanged -= SettingsUpdateCenterAlertContainer;
-            _hideAlertsSetting.SettingChanged -= SettingsUpdateHideAlerts;
-            _hideDirectionsSetting.SettingChanged -= SettingsUpdateHideDirections;
-            _hideMarkersSetting.SettingChanged -= SettingsUpdateHideMarkers;
-            _alertSizeSetting.SettingChanged -= SettingsUpdateAlertSize;
+            GameService.Gw2Mumble.CurrentMap.MapChanged    -= _onNewMapLoaded;
+            _showDebugSetting.SettingChanged               -= SettingsUpdateShowDebug;
+            _lockAlertContainerSetting.SettingChanged      -= SettingsUpdateLockAlertContainer;
+            _centerAlertContainerSetting.SettingChanged    -= SettingsUpdateCenterAlertContainer;
+            _hideAlertsSetting.SettingChanged              -= SettingsUpdateHideAlerts;
+            _hideDirectionsSetting.SettingChanged          -= SettingsUpdateHideDirections;
+            _hideMarkersSetting.SettingChanged             -= SettingsUpdateHideMarkers;
+            _alertSizeSetting.SettingChanged               -= SettingsUpdateAlertSize;
             _alertDisplayOrientationSetting.SettingChanged -= SettingsUpdateAlertDisplayOrientation;
-            _alertContainerLocationSetting.SettingChanged -= SettingsUpdateAlertContainerLocation;
-            _alertMoveDelaySetting.SettingChanged -= SettingsUpdateAlertMoveDelay;
-            _alertFadeDelaySetting.SettingChanged -= SettingsUpdateAlertFadeDelay;
+            _alertContainerLocationSetting.SettingChanged  -= SettingsUpdateAlertContainerLocation;
+            _alertMoveDelaySetting.SettingChanged          -= SettingsUpdateAlertMoveDelay;
+            _alertFadeDelaySetting.SettingChanged          -= SettingsUpdateAlertFadeDelay;
 
             // Cleanup tab
             GameService.Overlay.BlishHudWindow.RemoveTab(_timersTab);
