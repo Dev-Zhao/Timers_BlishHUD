@@ -1,10 +1,7 @@
 ﻿using Blish_HUD;
-using Blish_HUD.Entities;
-using Blish_HUD.Pathing.Entities.Effects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Blish_HUD.Content;
 
 namespace Charr.Timers_BlishHUD.Pathing.Entities

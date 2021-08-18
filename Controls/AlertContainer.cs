@@ -122,7 +122,9 @@ namespace Charr.Timers_BlishHUD.Controls {
             var tempChildren = _children.Cast<TControl>().ToList();
             tempChildren.Sort(comparison);
 
-            _children = tempChildren.Cast<Control>().ToList();
+            _children.Select(_children.Remove);
+
+            _children.AddRange(tempChildren);
 
             ReflowChildLayout(_children);
         }
@@ -441,7 +443,7 @@ namespace Charr.Timers_BlishHUD.Controls {
             canChangeSize = true;
         }
 
-        private void ReflowChildLayout(List<Control> allChildren) {
+        private void ReflowChildLayout(IEnumerable<Control> allChildren) {
             var filteredChildren = allChildren.ToList().Where(c => c.GetType() != typeof(Scrollbar)
                                                                    && c.Visible);
             switch (_flowDirection) {

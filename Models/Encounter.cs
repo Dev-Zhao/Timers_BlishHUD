@@ -239,7 +239,7 @@ namespace Charr.Timers_BlishHUD.Models {
 
         public void Dispose() {
             Deactivate();
-            Phases?.ForEach(ph => ph.Dispose());
+            Phases?.ForEach(ph => ph?.Dispose());
             Phases?.Clear();
         }
     }

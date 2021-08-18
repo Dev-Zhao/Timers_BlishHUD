@@ -13,7 +13,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
         PlayerPosition,
     }
 
-    public class MarkerPathable : IEntity
+    public class MarkerPathable : Entity
     {
 
         private static readonly Logger Logger = Logger.GetLogger<MarkerPathable>();

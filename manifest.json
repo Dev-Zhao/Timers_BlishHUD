@@ -1,6 +1,6 @@
 {
   "name": "Timers",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "namespace": "Charr.Timers_BlishHUD",
   "package": "Timers_BlishHUD.dll",
   "manifest_version": 1,
