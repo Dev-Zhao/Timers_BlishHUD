@@ -272,7 +272,7 @@ namespace Charr.Timers_BlishHUD.Models {
 
         public void Dispose() {
             Deactivate();
-            Alerts.ForEach(al => al.Dispose());
+            Alerts.ForEach(al => al?.Dispose());
             Directions.Clear();
             Markers.Clear();
             Alerts.Clear();
