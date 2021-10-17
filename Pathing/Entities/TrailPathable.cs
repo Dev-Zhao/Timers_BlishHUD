@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
+using System.Linq;
 using Blish_HUD.Content;
 
 namespace Charr.Timers_BlishHUD.Pathing.Entities
@@ -39,11 +40,9 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
         #endregion
 
         public override void HandleRebuild(GraphicsDevice graphicsDevice) { /* NOOP */ }
-
-        private static BuildTrailWithResolution(List<Vector3> points, float pointResolution)
-        {
-            if (!points.Any())
-            {
+        
+        private static List<Vector3> BuildTrailWithResolution(List<Vector3> points, float pointResolution) {
+            if (!points.Any()) {
                 return new List<Vector3>(0);
             }
 
@@ -51,15 +50,13 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
 
             var lstPoint = points[0];
 
-            for (int i = 0; i<points.Count; i++)
-            {
+            for (int i = 0; i < points.Count; i++) {
                 var dist = Vector3.Distance(lstPoint, points[i]);
 
                 var s   = dist / pointResolution;
                 var inc = 1    / s;
 
-                for (float v = inc; v <s - inc; v += inc)
-                {
+                for (float v = inc; v < s - inc; v += inc) {
                     var nPoint = Vector3.Lerp(lstPoint, points[i], v / s);
 
                     tempPoints.Add(nPoint);
@@ -72,12 +69,12 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
 
             return tempPoints;
         }
-
+        
         // TODO: When the time comes, this update method has plenty of places where easy optimizations can be made.
         public override void Update(GameTime gameTime) {
             if (!Visible || !ShouldShow) return;
 
-            List <Vector3> trailPoints = BuildTrailWithResolution(new List<Vector3>(new Vector3[] { PointA, PointB }), this.TrailResolution);
+            List<Vector3> trailPoints = BuildTrailWithResolution(new List<Vector3>(new Vector3[] { PointA, PointB }), this.TrailResolution);
 
             _vertexData = new VertexPositionColorTexture[trailPoints.Count * 2];
 
