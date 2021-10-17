@@ -69,7 +69,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
 
             return tempPoints;
         }
-
+        
         // TODO: When the time comes, this update method has plenty of places where easy optimizations can be made.
         public override void Update(GameTime gameTime) {
             if (!Visible || !ShouldShow) return;
