@@ -68,7 +68,6 @@
   <ItemGroup>
     <Compile Include="Controls\AlertContainer.cs" />
     <Compile Include="Controls\AlertPanel.cs" />
-    <Compile Include="Controls\AlertWindow.cs" />
     <Compile Include="Controls\Effects\SimpleScrollingHighlightEffect.cs" />
     <Compile Include="Controls\TimerDetailsButton.cs" />
     <Compile Include="Pathing\Entities\Billboard.cs" />
