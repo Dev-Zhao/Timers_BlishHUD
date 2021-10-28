@@ -1,6 +1,7 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
+using Blish_HUD.Input;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
@@ -45,7 +46,7 @@ namespace Charr.Timers_BlishHUD {
 
         // Controls - UI
         public AlertContainer _alertContainer;
-        private AlertWindow _alertSettingsWindow;
+        private StandardWindow _alertSettingsWindow;
         private List<AlertPanel> _testAlertPanels;
 
         // Controls - Tab
@@ -407,29 +408,75 @@ namespace Charr.Timers_BlishHUD {
                 ShowBorder = true
             };
 
+            StandardButton alertSettingsButton = new StandardButton {
+                Parent = mainPanel,
+                Text   = "Alert Settings"
+            };
+
+            StandardButton enableAllButton = new StandardButton {
+                Parent = mainPanel,
+                Text   = "Enable All"
+            };
+
+            StandardButton disableAllButton = new StandardButton {
+                Parent = mainPanel,
+                Text   = "Disable All"
+            };
+
+            timerPanel.Size = new Point(mainPanel.Right  - menuSection.Right      - Control.ControlStandard.ControlOffset.X,
+                                        mainPanel.Height - enableAllButton.Height - StandardButton.ControlStandard.ControlOffset.Y * 2);
+
+            if (!Directory.EnumerateFiles(DirectoriesManager.GetFullDirectoryPath("timers")).Any()) {
+                var noTimersPanel = new Panel() {
+                    Parent     = mainPanel,
+                    Location   = new Point(menuSection.Right + Panel.MenuStandard.ControlOffset.X, Panel.MenuStandard.ControlOffset.Y),
+                    ShowBorder = true,
+                    Size       = timerPanel.Size
+                };
+
+                var noTimersNotice = new Label() {
+                    Text                = "You don't have any timers!\nDownload some and place them in your timers folder.",
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment   = VerticalAlignment.Bottom,
+                    Parent              = noTimersPanel,
+                    Size                = new Point(noTimersPanel.Width, noTimersPanel.Height / 2 - 64),
+                    ClipsBounds         = false,
+                };
+
+                var downloadHerosPack = new StandardButton() {
+                    Text     = "Download Hero's Timers",
+                    Parent   = noTimersPanel,
+                    Width    = 196,
+                    Location = new Point(noTimersPanel.Width / 2 - 200, noTimersNotice.Bottom + 24),
+                };
+
+                var openTimersFolder = new StandardButton() {
+                    Text     = "Open Timers Folder",
+                    Parent   = noTimersPanel,
+                    Width    = 196,
+                    Location = new Point(noTimersPanel.Width / 2 + 4, noTimersNotice.Bottom + 24),
+                };
+
+                var restartBlishHudAfter = new Label() {
+                    Text                = "Once done, restart this module or Blish HUD to enable them.",
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment   = VerticalAlignment.Top,
+                    Parent              = noTimersPanel,
+                    AutoSizeHeight      = true,
+                    Width               = noTimersNotice.Width,
+                    Top                 = openTimersFolder.Bottom + 4
+                };
+
+                downloadHerosPack.Click += delegate(object sender, MouseEventArgs args) { Process.Start("https://github.com/QuitarHero/Hero-Timers/releases/latest/download/Hero-Timers.zip"); };
+
+                openTimersFolder.Click += delegate(object sender, MouseEventArgs args) { Process.Start("explorer.exe", $"/open, \"{DirectoriesManager.GetFullDirectoryPath("timers")}\\\""); };
+            }
+
             searchBox.Width = menuSection.Width;
             searchBox.TextChanged += delegate(object sender, EventArgs args) {
                 timerPanel.FilterChildren<TimerDetailsButton>(
                     db => db.Text.ToLower().Contains(searchBox.Text.ToLower()));
             };
-
-            StandardButton alertSettingsButton = new StandardButton {
-                Parent = mainPanel,
-                Text = "Alert Settings"
-            };
-
-            StandardButton enableAllButton = new StandardButton {
-                Parent = mainPanel,
-                Text = "Enable All"
-            };
-
-            StandardButton disableAllButton = new StandardButton {
-                Parent = mainPanel,
-                Text = "Disable All"
-            };
-
-            timerPanel.Size = new Point(mainPanel.Right - menuSection.Right - Control.ControlStandard.ControlOffset.X,
-                mainPanel.Height - enableAllButton.Height - StandardButton.ControlStandard.ControlOffset.Y * 2);
 
             alertSettingsButton.Location = new Point(
                 menuSection.Right + Panel.MenuStandard.ControlOffset.X,
@@ -446,14 +493,12 @@ namespace Charr.Timers_BlishHUD {
                     timerPanel.Bottom + StandardButton.ControlStandard.ControlOffset.Y);
 
             // 2. Alert Settings Window
-            _alertSettingsWindow = new AlertWindow {
+            _alertSettingsWindow = new StandardWindow(Resources.AlertSettingsBackground, new Rectangle(24, 17, 505, 390), new Rectangle(38, 45, 472, 350)) {
                 Parent = GameService.Graphics.SpriteScreen,
-                Title = "Alert Settings",
-                Width = 460,
-                Height = 500,
-                WindowBackground = Resources.AlertSettingsBackground,
+                Title  = "Alert Settings",
                 Emblem = Resources.TextureTimerEmblem
             };
+
             _alertSettingsWindow.Hide();
 
             alertSettingsButton.Click += delegate {
@@ -472,8 +517,8 @@ namespace Charr.Timers_BlishHUD {
                 Text = "Lock Alerts Container",
                 BasicTooltipText = "When enabled, the alerts container will be locked and cannot be moved.",
                 Location = new Point(
-                    _alertSettingsWindow.ValidChildRegion().X + Control.ControlStandard.ControlOffset.X,
-                    _alertSettingsWindow.ValidChildRegion().Y - Control.ControlStandard.ControlOffset.Y)
+                    Control.ControlStandard.ControlOffset.X,
+                    Control.ControlStandard.ControlOffset.Y)
             };
             lockAlertsWindowCB.Checked = _lockAlertContainerSetting.Value;
             lockAlertsWindowCB.CheckedChanged += delegate {
@@ -486,7 +531,7 @@ namespace Charr.Timers_BlishHUD {
                 BasicTooltipText =
                     "When enabled, the location of the alerts container will always be set to the center of the screen.",
                 Location = new Point(
-                    _alertSettingsWindow.ValidChildRegion().X + Control.ControlStandard.ControlOffset.X,
+                    Control.ControlStandard.ControlOffset.X,
                     lockAlertsWindowCB.Bottom + Control.ControlStandard.ControlOffset.Y)
             };
             centerAlertsWindowCB.Checked = _centerAlertContainerSetting.Value;
@@ -501,7 +546,7 @@ namespace Charr.Timers_BlishHUD {
                 BasicTooltipText =
                     "When enabled, alerts on the screen will be hidden.",
                 Location = new Point(
-                    _alertSettingsWindow.ValidChildRegion().X + Control.ControlStandard.ControlOffset.X,
+                    Control.ControlStandard.ControlOffset.X,
                     centerAlertsWindowCB.Bottom + Control.ControlStandard.ControlOffset.Y)
             };
             hideAlertsCB.Checked = _hideAlertsSetting.Value;
@@ -516,7 +561,7 @@ namespace Charr.Timers_BlishHUD {
                 BasicTooltipText =
                     "When enabled, directions on the screen will be hidden.",
                 Location = new Point(
-                    _alertSettingsWindow.ValidChildRegion().X + Control.ControlStandard.ControlOffset.X,
+                    Control.ControlStandard.ControlOffset.X,
                     hideAlertsCB.Bottom + Control.ControlStandard.ControlOffset.Y)
             };
             hideDirectionsCB.Checked = _hideDirectionsSetting.Value;
@@ -531,7 +576,7 @@ namespace Charr.Timers_BlishHUD {
                 BasicTooltipText =
                     "When enabled, markers on the screen will be hidden.",
                 Location = new Point(
-                    _alertSettingsWindow.ValidChildRegion().X + Control.ControlStandard.ControlOffset.X,
+                    Control.ControlStandard.ControlOffset.X,
                     hideDirectionsCB.Bottom + Control.ControlStandard.ControlOffset.Y)
             };
             hideMarkersCB.Checked = _hideMarkersSetting.Value;
@@ -545,7 +590,7 @@ namespace Charr.Timers_BlishHUD {
                 Text = "Alert Size",
                 AutoSizeWidth = true,
                 Location = new Point(
-                    _alertSettingsWindow.ValidChildRegion().X + Control.ControlStandard.ControlOffset.X,
+                    Control.ControlStandard.ControlOffset.X,
                     hideMarkersCB.Bottom + Control.ControlStandard.ControlOffset.Y)
             };
 
@@ -567,7 +612,7 @@ namespace Charr.Timers_BlishHUD {
                 Text = "Alert Display Orientation",
                 AutoSizeWidth = true,
                 Location = new Point(
-                    _alertSettingsWindow.ValidChildRegion().X + Control.ControlStandard.ControlOffset.X,
+                    Control.ControlStandard.ControlOffset.X,
                     alertSizeLabel.Bottom + Dropdown.ControlStandard.ControlOffset.Y)
             };
 
@@ -621,7 +666,7 @@ namespace Charr.Timers_BlishHUD {
                 Text = "Alert Preview",
                 AutoSizeWidth = true,
                 Location = new Point(
-                    _alertSettingsWindow.ValidChildRegion().X + Control.ControlStandard.ControlOffset.X,
+                    Control.ControlStandard.ControlOffset.X,
                     alertDisplayOrientationDropdown.Bottom + Dropdown.ControlStandard.ControlOffset.Y)
             };
 
@@ -672,7 +717,7 @@ namespace Charr.Timers_BlishHUD {
                 Text = "Alert Container Position",
                 AutoSizeWidth = true,
                 Location = new Point(
-                    _alertSettingsWindow.ValidChildRegion().X + Control.ControlStandard.ControlOffset.X,
+                    Control.ControlStandard.ControlOffset.X,
                     clearTestAlertsButton.Bottom + Dropdown.ControlStandard.ControlOffset.Y)
             };
 
@@ -695,7 +740,7 @@ namespace Charr.Timers_BlishHUD {
                 BasicTooltipText = "How many seconds alerts will take to reposition itself.",
                 AutoSizeWidth = true,
                 Location = new Point(
-                    _alertSettingsWindow.ValidChildRegion().X + Control.ControlStandard.ControlOffset.X,
+                    0 + Control.ControlStandard.ControlOffset.X,
                     resetAlertContainerPositionButton.Bottom + Dropdown.ControlStandard.ControlOffset.Y)
             };
 
@@ -747,7 +792,7 @@ namespace Charr.Timers_BlishHUD {
                 BasicTooltipText = "How many seconds alerts will take to appear/disappear.",
                 AutoSizeWidth = true,
                 Location = new Point(
-                    _alertSettingsWindow.ValidChildRegion().X + Control.ControlStandard.ControlOffset.X,
+                    Control.ControlStandard.ControlOffset.X,
                     alertMoveDelayLabel.Bottom + Dropdown.ControlStandard.ControlOffset.Y)
             };
 
