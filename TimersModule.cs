@@ -1,6 +1,7 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
+using Blish_HUD.Input;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
@@ -407,29 +408,75 @@ namespace Charr.Timers_BlishHUD {
                 ShowBorder = true
             };
 
+            StandardButton alertSettingsButton = new StandardButton {
+                Parent = mainPanel,
+                Text   = "Alert Settings"
+            };
+
+            StandardButton enableAllButton = new StandardButton {
+                Parent = mainPanel,
+                Text   = "Enable All"
+            };
+
+            StandardButton disableAllButton = new StandardButton {
+                Parent = mainPanel,
+                Text   = "Disable All"
+            };
+
+            timerPanel.Size = new Point(mainPanel.Right  - menuSection.Right      - Control.ControlStandard.ControlOffset.X,
+                                        mainPanel.Height - enableAllButton.Height - StandardButton.ControlStandard.ControlOffset.Y * 2);
+
+            if (!Directory.EnumerateFiles(DirectoriesManager.GetFullDirectoryPath("timers")).Any()) {
+                var noTimersPanel = new Panel() {
+                    Parent     = mainPanel,
+                    Location   = new Point(menuSection.Right + Panel.MenuStandard.ControlOffset.X, Panel.MenuStandard.ControlOffset.Y),
+                    ShowBorder = true,
+                    Size       = timerPanel.Size
+                };
+
+                var noTimersNotice = new Label() {
+                    Text                = "You don't have any timers!\nDownload some and place them in your timers folder.",
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment   = VerticalAlignment.Bottom,
+                    Parent              = noTimersPanel,
+                    Size                = new Point(noTimersPanel.Width, noTimersPanel.Height / 2 - 64),
+                    ClipsBounds         = false,
+                };
+
+                var downloadHerosPack = new StandardButton() {
+                    Text     = "Download Hero's Timers",
+                    Parent   = noTimersPanel,
+                    Width    = 196,
+                    Location = new Point(noTimersPanel.Width / 2 - 200, noTimersNotice.Bottom + 24),
+                };
+
+                var openTimersFolder = new StandardButton() {
+                    Text     = "Open Timers Folder",
+                    Parent   = noTimersPanel,
+                    Width    = 196,
+                    Location = new Point(noTimersPanel.Width / 2 + 4, noTimersNotice.Bottom + 24),
+                };
+
+                var restartBlishHudAfter = new Label() {
+                    Text                = "Once done, restart this module or Blish HUD to enable them.",
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment   = VerticalAlignment.Top,
+                    Parent              = noTimersPanel,
+                    AutoSizeHeight      = true,
+                    Width               = noTimersNotice.Width,
+                    Top                 = openTimersFolder.Bottom + 4
+                };
+
+                downloadHerosPack.Click += delegate(object sender, MouseEventArgs args) { Process.Start("https://github.com/QuitarHero/Hero-Timers/releases/latest/download/Hero-Timers.zip"); };
+
+                openTimersFolder.Click += delegate(object sender, MouseEventArgs args) { Process.Start("explorer.exe", $"/open, \"{DirectoriesManager.GetFullDirectoryPath("timers")}\\\""); };
+            }
+
             searchBox.Width = menuSection.Width;
             searchBox.TextChanged += delegate(object sender, EventArgs args) {
                 timerPanel.FilterChildren<TimerDetailsButton>(
                     db => db.Text.ToLower().Contains(searchBox.Text.ToLower()));
             };
-
-            StandardButton alertSettingsButton = new StandardButton {
-                Parent = mainPanel,
-                Text = "Alert Settings"
-            };
-
-            StandardButton enableAllButton = new StandardButton {
-                Parent = mainPanel,
-                Text = "Enable All"
-            };
-
-            StandardButton disableAllButton = new StandardButton {
-                Parent = mainPanel,
-                Text = "Disable All"
-            };
-
-            timerPanel.Size = new Point(mainPanel.Right - menuSection.Right - Control.ControlStandard.ControlOffset.X,
-                mainPanel.Height - enableAllButton.Height - StandardButton.ControlStandard.ControlOffset.Y * 2);
 
             alertSettingsButton.Location = new Point(
                 menuSection.Right + Panel.MenuStandard.ControlOffset.X,
