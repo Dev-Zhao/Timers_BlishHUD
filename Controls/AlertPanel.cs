@@ -9,7 +9,7 @@ using Blish_HUD.Content;
 using Charr.Timers_BlishHUD.Controls.Effects;
 
 namespace Charr.Timers_BlishHUD.Controls {
-    public class AlertPanel : FlowPanel {
+    public class AlertPanel : FlowPanel, IAlertPanel {
         public static int DEFAULT_ALERTPANEL_WIDTH = 320;
         public static int DEFAULT_ALERTPANEL_HEIGHT = 128;
 

@@ -18,12 +18,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Charr.Timers_BlishHUD.Controls.BigWigs;
 
 namespace Charr.Timers_BlishHUD {
-    public enum AlertSize {
+    public enum AlertType {
         Small,
         Medium,
-        Large
+        Large,
+        BigWigStyle
     }
 
     [Export(typeof(Module))]
@@ -47,7 +49,7 @@ namespace Charr.Timers_BlishHUD {
         // Controls - UI
         public AlertContainer _alertContainer;
         private StandardWindow _alertSettingsWindow;
-        private List<AlertPanel> _testAlertPanels;
+        private List<IAlertPanel> _testAlertPanels;
 
         // Controls - Tab
         private WindowTab _timersTab;
@@ -88,7 +90,7 @@ namespace Charr.Timers_BlishHUD {
         public SettingEntry<bool> _hideAlertsSetting;
         public SettingEntry<bool> _hideDirectionsSetting;
         public SettingEntry<bool> _hideMarkersSetting;
-        private SettingEntry<AlertSize> _alertSizeSetting;
+        public SettingEntry<AlertType> _alertSizeSetting;
         public SettingEntry<ControlFlowDirection> _alertDisplayOrientationSetting;
         private SettingEntry<Point> _alertContainerLocationSetting;
         public SettingEntry<float> _alertMoveDelaySetting;
@@ -116,7 +118,7 @@ namespace Charr.Timers_BlishHUD {
             _hideDirectionsSetting = _alertSettingCollection.DefineSetting("HideDirections", false);
             _hideMarkersSetting = _alertSettingCollection.DefineSetting("HideMarkers", false);
             _centerAlertContainerSetting = _alertSettingCollection.DefineSetting("CenterAlertContainer", true);
-            _alertSizeSetting = _alertSettingCollection.DefineSetting("AlertSize", AlertSize.Medium);
+            _alertSizeSetting = _alertSettingCollection.DefineSetting("AlertSize", AlertType.Medium);
             _alertDisplayOrientationSetting =
                 _alertSettingCollection.DefineSetting("AlertDisplayOrientation", ControlFlowDirection.SingleLeftToRight);
             _alertContainerLocationSetting = _alertSettingCollection.DefineSetting("AlertContainerLocation", Point.Zero);
@@ -166,17 +168,21 @@ namespace Charr.Timers_BlishHUD {
 
         private void SettingsUpdateAlertSize(object sender = null, EventArgs e = null) {
             switch (_alertSizeSetting.Value) {
-                case AlertSize.Small:
+                case AlertType.Small:
                     AlertPanel.DEFAULT_ALERTPANEL_WIDTH = 320;
                     AlertPanel.DEFAULT_ALERTPANEL_HEIGHT = 64;
                     break;
-                case AlertSize.Medium:
+                case AlertType.Medium:
                     AlertPanel.DEFAULT_ALERTPANEL_WIDTH = 320;
                     AlertPanel.DEFAULT_ALERTPANEL_HEIGHT = 96;
                     break;
-                case AlertSize.Large:
+                case AlertType.Large:
                     AlertPanel.DEFAULT_ALERTPANEL_WIDTH = 320;
                     AlertPanel.DEFAULT_ALERTPANEL_HEIGHT = 128;
+                    break;
+                case AlertType.BigWigStyle:
+                    AlertPanel.DEFAULT_ALERTPANEL_WIDTH  = 336;
+                    AlertPanel.DEFAULT_ALERTPANEL_HEIGHT = 35;
                     break;
             }
         }
@@ -226,7 +232,7 @@ namespace Charr.Timers_BlishHUD {
             _activeEncounters = new List<Encounter>();
             _invalidEncounters = new List<Encounter>();
             _allTimerDetails = new List<TimerDetailsButton>();
-            _testAlertPanels = new List<AlertPanel>();
+            _testAlertPanels = new List<IAlertPanel>();
             _debugText = new Label {
                 Parent = GameService.Graphics.SpriteScreen,
                 Location = new Point(10, 38),
@@ -329,7 +335,7 @@ namespace Charr.Timers_BlishHUD {
             zipFiles.AddRange(Directory.GetFiles(timerDirectory, "*.zip", SearchOption.AllDirectories));
 
             foreach (string zipFile in zipFiles) {
-                ZipArchiveReader zipDataReader = new ZipArchiveReader(zipFile);
+                SortedZipArchiveReader  zipDataReader      = new SortedZipArchiveReader(zipFile);
                 PathableResourceManager zipResourceManager = new PathableResourceManager(zipDataReader);
                 _pathableResourceManagers.Add(zipResourceManager);
                 zipDataReader.LoadOnFileType(
@@ -355,7 +361,7 @@ namespace Charr.Timers_BlishHUD {
 
             _alertContainer = new AlertContainer {
                 Parent = GameService.Graphics.SpriteScreen,
-                ControlPadding = new Vector2(10, 10),
+                ControlPadding = new Vector2(10, 5),
                 PadLeftBeforeControl = true,
                 PadTopBeforeControl = true,
                 BackgroundColor = new Color(Color.Black, 0.3f),
@@ -494,9 +500,11 @@ namespace Charr.Timers_BlishHUD {
 
             // 2. Alert Settings Window
             _alertSettingsWindow = new StandardWindow(Resources.AlertSettingsBackground, new Rectangle(24, 17, 505, 390), new Rectangle(38, 45, 472, 350)) {
-                Parent = GameService.Graphics.SpriteScreen,
-                Title  = "Alert Settings",
-                Emblem = Resources.TextureTimerEmblem
+                Parent        = GameService.Graphics.SpriteScreen,
+                Title         = "Alert Settings",
+                Emblem        = Resources.TextureTimerEmblem,
+                SavesPosition = true,
+                Id            = "TimersAlertSettingsWindow",
             };
 
             _alertSettingsWindow.Hide();
@@ -507,8 +515,6 @@ namespace Charr.Timers_BlishHUD {
                 }
                 else {
                     _alertSettingsWindow.Show();
-                    _alertSettingsWindow.Location = new Point(GameService.Input.Mouse.Position.X + 10,
-                        GameService.Input.Mouse.Position.Y - _alertSettingsWindow.Height / 4);
                 }
             };
 
@@ -600,11 +606,12 @@ namespace Charr.Timers_BlishHUD {
             alertSizeDropdown.Items.Add("Small");
             alertSizeDropdown.Items.Add("Medium");
             alertSizeDropdown.Items.Add("Large");
+            alertSizeDropdown.Items.Add("BigWig Style");
             alertSizeDropdown.SelectedItem = _alertSizeSetting.Value.ToString();
 
             alertSizeDropdown.ValueChanged += delegate {
                 _alertSizeSetting.Value =
-                    (AlertSize) Enum.Parse(typeof(AlertSize), alertSizeDropdown.SelectedItem, true);
+                    (AlertType) Enum.Parse(typeof(AlertType), alertSizeDropdown.SelectedItem.Replace(" ", ""), true);
             };
 
             Label alertDisplayOrientationLabel = new Label {
@@ -678,19 +685,25 @@ namespace Charr.Timers_BlishHUD {
             };
 
             addTestAlertButton.Click += delegate {
-                _testAlertPanels.Add(new AlertPanel {
-                    Parent = _alertContainer,
-                    ControlPadding = new Vector2(10, 10),
-                    PadLeftBeforeControl = true,
-                    PadTopBeforeControl = true,
-                    Text = "Test Alert " + (_testAlertPanels.Count + 1),
-                    TextColor = Color.White,
-                    Icon = Texture2DExtension.Duplicate(Resources.GetIcon("raid")),
-                    MaxFill = 0f,
-                    CurrentFill = 0f,
-                    FillColor = Color.Red,
-                    ShouldShow = !_hideAlertsSetting.Value
-                });
+                IAlertPanel newAlert = _alertSizeSetting.Value == AlertType.BigWigStyle
+                                   ? new BigWigAlert()
+                                   : new AlertPanel() {
+                                       ControlPadding = new Vector2(10, 10),
+                                       PadLeftBeforeControl = true,
+                                       PadTopBeforeControl = true,
+                                   };
+
+                newAlert.Text        = "Test Alert " + (_testAlertPanels.Count + 1);
+                newAlert.TextColor   = Color.White;
+                newAlert.Icon        = Texture2DExtension.Duplicate(Resources.GetIcon("raid"));
+                newAlert.MaxFill     = 100f;
+                newAlert.CurrentFill = RandomUtil.GetRandom(0, 100) + RandomUtil.GetRandom(0, 100) * 0.01f;
+                newAlert.FillColor   = Color.Red;
+                newAlert.ShouldShow  = !_hideAlertsSetting.Value;
+
+                ((Control)newAlert).Parent = _alertContainer;
+
+                _testAlertPanels.Add(newAlert);
                 _alertContainer.UpdateDisplay();
             };
 
@@ -960,11 +973,14 @@ namespace Charr.Timers_BlishHUD {
                     (db.Encounter.Map == GameService.Gw2Mumble.CurrentMap.Id)).ToList();
             };
 
-            MenuItem invalidTimers = timerCategories.AddMenuItem("Invalid Timers");
-            invalidTimers.Click += delegate {
-                timerPanel.FilterChildren<TimerDetailsButton>(db => db.Encounter.Invalid);
-                _displayedTimerDetails = _allTimerDetails.Where(db => db.Encounter.Invalid).ToList();
-            };
+            if (_encounters.Any(e => e.Invalid)) {
+                MenuItem invalidTimers = timerCategories.AddMenuItem("Invalid Timers");
+
+                invalidTimers.Click += delegate {
+                    timerPanel.FilterChildren<TimerDetailsButton>(db => db.Encounter.Invalid);
+                    _displayedTimerDetails = _allTimerDetails.Where(db => db.Encounter.Invalid).ToList();
+                };
+            }
 
             List<IGrouping<string, Encounter>> categories = _encounters.GroupBy(enc => enc.Category).ToList();
             if (_sortCategorySetting.Value) {
