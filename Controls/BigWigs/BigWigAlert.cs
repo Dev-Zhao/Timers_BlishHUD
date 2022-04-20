@@ -43,6 +43,10 @@ namespace Charr.Timers_BlishHUD.Controls.BigWigs {
         public bool           ShouldShow     { get; set; }
         public AsyncTexture2D Icon           { get; set; }
 
+        protected override CaptureType CapturesInput() {
+            return CaptureType.None | CaptureType.DoNotBlock;
+        }
+
         public BigWigAlert() {
             this.Size = new Point(DEFAULT_WIDTH, ICON_SIZE + TOP_BORDER + BOTTOM_BORDER);
             this.Icon = new AsyncTexture2D(ContentService.Textures.Error);  
