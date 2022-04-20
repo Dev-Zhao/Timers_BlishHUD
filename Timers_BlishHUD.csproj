@@ -68,7 +68,9 @@
   <ItemGroup>
     <Compile Include="Controls\AlertContainer.cs" />
     <Compile Include="Controls\AlertPanel.cs" />
+    <Compile Include="Controls\BigWigs\BigWigAlert.cs" />
     <Compile Include="Controls\Effects\SimpleScrollingHighlightEffect.cs" />
+    <Compile Include="Controls\IAlertPanel.cs" />
     <Compile Include="Controls\TimerDetailsButton.cs" />
     <Compile Include="Pathing\Entities\Billboard.cs" />
     <Compile Include="Pathing\Entities\Entity.cs" />
@@ -89,6 +91,7 @@
     <Compile Include="Models\Triggers\TriggerConverter.cs" />
     <Compile Include="Pathing\Content\PathableResourceManager.cs" />
     <Compile Include="Pathing\Entities\TrailPathable.cs" />
+    <Compile Include="SortedZipArchiveReader.cs" />
     <Compile Include="TimersModule.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -196,6 +199,8 @@
       <HintPath>packages\System.Collections.Immutable.1.7.1\lib\net461\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
     </Reference>
@@ -244,6 +249,7 @@
   <ItemGroup>
     <None Include="ref\_instructions.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>

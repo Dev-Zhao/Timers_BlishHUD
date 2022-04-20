@@ -9,6 +9,7 @@ using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
 using Charr.Timers_BlishHUD.Controls;
+using Charr.Timers_BlishHUD.Controls.BigWigs;
 using Charr.Timers_BlishHUD.Pathing.Content;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
@@ -55,7 +56,7 @@ namespace Charr.Timers_BlishHUD.Models {
         public Color WarningColor { get; set; } = Color.White;
         public Color AlertColor { get; set; } = Color.White;
         public AsyncTexture2D Icon { get; set; }
-        public Dictionary<float, AlertPanel> activePanels { get; set; }
+        public Dictionary<float, IAlertPanel> activePanels { get; set; }
 
         // Private members
         private bool _activated;
@@ -78,7 +79,7 @@ namespace Charr.Timers_BlishHUD.Models {
             if (Icon == null)
                 Icon = resourceManager.LoadTexture(IconString);
 
-            activePanels = new Dictionary<float, AlertPanel>();
+            activePanels = new Dictionary<float, IAlertPanel>();
 
             return null;
         }
@@ -107,20 +108,26 @@ namespace Charr.Timers_BlishHUD.Models {
             _activated = false;
         }
 
-        private AlertPanel CreatePanel() {
-            AlertPanel panel = new AlertPanel {
-                Parent = TimersModule.ModuleInstance._alertContainer,
-                ControlPadding = new Vector2(8, 8),
-                PadLeftBeforeControl = true,
-                PadTopBeforeControl = true,
-                Text = (string.IsNullOrEmpty(WarningText)) ? AlertText : WarningText,
-                TextColor = (string.IsNullOrEmpty(WarningText)) ? AlertColor : WarningColor,
-                Icon = Texture2DExtension.Duplicate(Icon),
-                FillColor = Fill,
-                MaxFill = (string.IsNullOrEmpty(WarningText)) ? 0.0f : WarningDuration,
-                CurrentFill = 0.0f,
-                ShouldShow = ShowAlert
-            };
+        private IAlertPanel CreatePanel() {
+            IAlertPanel panel = TimersModule.ModuleInstance._alertSizeSetting.Value == AlertType.BigWigStyle
+                                    ? new BigWigAlert()
+                                    : new AlertPanel() {
+                                        ControlPadding       = new Vector2(8, 8),
+                                        PadLeftBeforeControl = true,
+                                        PadTopBeforeControl  = true,
+                                    };
+
+            panel.Text        = (string.IsNullOrEmpty(WarningText)) ? AlertText : WarningText;
+            panel.TextColor   = (string.IsNullOrEmpty(WarningText)) ? AlertColor : WarningColor;
+            panel.Icon        = Texture2DExtension.Duplicate(Icon);
+            panel.FillColor   = Fill;
+            panel.MaxFill     = (string.IsNullOrEmpty(WarningText)) ? 0.0f : WarningDuration;
+            panel.CurrentFill = 0.0f;
+            panel.ShouldShow  = ShowAlert;
+            
+            ((Control)panel).Parent = TimersModule.ModuleInstance._alertContainer;
+            
+
             TimersModule.ModuleInstance._alertContainer.UpdateDisplay();
             return panel;
         }
@@ -131,7 +138,7 @@ namespace Charr.Timers_BlishHUD.Models {
             }
 
             foreach (float time in Timestamps) {
-                AlertPanel activePanel;
+                IAlertPanel activePanel;
                 if (!activePanels.TryGetValue(time, out activePanel)) {
                     if (string.IsNullOrEmpty(WarningText) &&
                         elapsedTime >= time &&
@@ -180,7 +187,7 @@ namespace Charr.Timers_BlishHUD.Models {
 
         public void Dispose() {
             if (activePanels != null) {
-                foreach (KeyValuePair<float, AlertPanel> entry in activePanels) {
+                foreach (KeyValuePair<float, IAlertPanel> entry in activePanels) {
                     entry.Value.Dispose();
                 }
                 activePanels.Clear();

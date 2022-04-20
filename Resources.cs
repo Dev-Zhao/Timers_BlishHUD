@@ -14,7 +14,7 @@ namespace Charr.Timers_BlishHUD.Controls {
         // Config
         public readonly int TICKRATE = 1000;
         public readonly float TICKINTERVAL;
-        public readonly int MAX_ALERT_WIDTH = 320;
+        public readonly int MAX_ALERT_WIDTH = 366;
         public readonly int MAX_ALERT_HEIGHT = 128;
 
         // Assets
@@ -35,6 +35,7 @@ namespace Charr.Timers_BlishHUD.Controls {
         public readonly Texture2D WindowTitleBarRightActive;
         public readonly Texture2D WindowCorner;
         public readonly Texture2D WindowBackground;
+        public readonly Texture2D BigWigBackground;
 
         private readonly Dictionary<string, string> _iconURIs = new Dictionary<string, string>() {
             {"raid", "9F5C23543CB8C715B7022635C10AA6D5011E74B3/1302679"},
@@ -88,6 +89,8 @@ namespace Charr.Timers_BlishHUD.Controls {
             WindowTitleBarRightActive = GameService.Content.GetTexture("window-topright-active");
             WindowCorner = GameService.Content.GetTexture(@"controls/window/156008");
             WindowBackground = GameService.Content.GetTexture(@"controls/notification/notification-gray");
+
+            BigWigBackground = TimersModule.ModuleInstance.ContentsManager.GetTexture(@"textures\1234872.png");
 
             _iconTextures = new Dictionary<string, AsyncTexture2D>();
             GetIcon(DEFAULT_ICON);
