@@ -33,7 +33,10 @@ namespace Charr.Timers_BlishHUD.Controls.BigWigs {
 
         public string Text {
             get => _text;
-            set => SetProperty(ref _text, value, true);
+            set {
+                value = value.Replace("\n", " - ");
+                SetProperty(ref _text, value, true);
+            }
         }
 
         public string         TimerText      { get; set; }
@@ -58,17 +61,16 @@ namespace Charr.Timers_BlishHUD.Controls.BigWigs {
         private Rectangle _filledBounds   = Rectangle.Empty;
         private Rectangle _timerBounds    = Rectangle.Empty;
 
-        private bool _useSmallText = false;
-
         public override void RecalculateLayout() {
             _iconBounds  = new Rectangle(TOP_BORDER,              TOP_BORDER, ICON_SIZE, ICON_SIZE);
             _timerBounds = new Rectangle(this.Width - TIMER_SIZE, 0,          TIMER_SIZE,        this.Height);
 
             int progressLeft = TOP_BORDER + ICON_SIZE + 1;
+            int progressFill = (int)(_progressBounds.Width * (this.CurrentFill / this.MaxFill));
             _progressBounds = new Rectangle(progressLeft,      TOP_BORDER,        this.Width - progressLeft - 1,                                    this.Height - TOP_BORDER - BOTTOM_BORDER);
-            _filledBounds   = new Rectangle(_progressBounds.X, _progressBounds.Y, _progressBounds.Width - (int)(_progressBounds.Width * (this.CurrentFill / this.MaxFill)), _progressBounds.Height);
-
-            _useSmallText = this.Text != null && this.Text.Contains("\n");
+            _filledBounds = new Rectangle(_progressBounds.X, _progressBounds.Y, TimersModule.ModuleInstance._alertFillDirection.Value
+                                                                                    ? progressFill
+                                                                                    : _progressBounds.Width - progressFill, _progressBounds.Height);
 
             base.RecalculateLayout();
         }
@@ -87,14 +89,14 @@ namespace Charr.Timers_BlishHUD.Controls.BigWigs {
             spriteBatch.DrawOnCtrl(this, ContentService.Textures.Pixel,                          _filledBounds,   this.FillColor * 0.45f);
 
             // Text
-            spriteBatch.DrawStringOnCtrl(this, this.Text, _useSmallText ? GameService.Content.DefaultFont14 : GameService.Content.DefaultFont18, _progressBounds.OffsetBy(11, -1), Color.Black);
-            spriteBatch.DrawStringOnCtrl(this, this.Text, _useSmallText ? GameService.Content.DefaultFont14 : GameService.Content.DefaultFont18, _progressBounds.OffsetBy(10, -2), this.TextColor);
+            spriteBatch.DrawStringOnCtrl(this, this.Text, GameService.Content.DefaultFont18, _progressBounds.OffsetBy(11, -1), Color.Black);
+            spriteBatch.DrawStringOnCtrl(this, this.Text, GameService.Content.DefaultFont18, _progressBounds.OffsetBy(10, -2), this.TextColor);
 
             // Timer
             float remainingTime = this.MaxFill - this.CurrentFill;
 
             string timerFormat = "0";
-            Color  timerColor  = Color.White;
+            var    timerColor  = this.TextColor;
 
             switch (remainingTime) {
                 case -1:
@@ -106,7 +108,7 @@ namespace Charr.Timers_BlishHUD.Controls.BigWigs {
                     break;
                 case > 0:
                     timerFormat = "0.0";
-                    timerColor  = Color.Yellow;
+                    timerColor  = this.TimerTextColor;
                     goto case -1;
                 case <= 0:
                     break;
