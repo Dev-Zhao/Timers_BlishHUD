@@ -168,7 +168,9 @@ namespace Charr.Timers_BlishHUD.Controls {
             _iconSize = Height;
             _iconBounds = new Rectangle(0, 0, _iconSize, _iconSize);
 
-            _fillPercent = (_maxFill > 0) ? (_currentFill / _maxFill) : 1f;
+            _fillPercent = TimersModule.ModuleInstance._alertFillDirection.Value
+                               ? ((_maxFill > 0) ? (_currentFill / _maxFill) : 1f)
+                               : 1f - ((_maxFill > 0) ? (_currentFill / _maxFill) : 1f);
             // The height starting from the bottom of the icon to fill up to
             _fillHeight = _iconSize * _fillPercent;
 
@@ -186,7 +188,7 @@ namespace Charr.Timers_BlishHUD.Controls {
             _bottomIconDestination = new Rectangle(0, _iconSize - (int) _fillHeight, _iconSize, (int) _fillHeight);
 
             // A colored rectangle to indicate fill
-            _fillDestination = new Rectangle(0, (int) (_iconSize - _fillHeight), _iconSize, (int) (_fillHeight));
+            _fillDestination = new Rectangle(0, (int)(_iconSize - _fillHeight), _iconSize, (int)(_fillHeight));
 
             // A white "line" at the fill height
             _fillCrestDestination = new Rectangle(0, _iconSize - (int) (_fillHeight), _iconSize, _iconSize);

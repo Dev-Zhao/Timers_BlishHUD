@@ -95,6 +95,7 @@ namespace Charr.Timers_BlishHUD {
         private SettingEntry<Point> _alertContainerLocationSetting;
         public SettingEntry<float> _alertMoveDelaySetting;
         public SettingEntry<float> _alertFadeDelaySetting;
+        public SettingEntry<bool> _alertFillDirection;
 
         [ImportingConstructor]
         public TimersModule([Import("ModuleParameters")] ModuleParameters moduleParameters) : base(moduleParameters) {
@@ -118,12 +119,13 @@ namespace Charr.Timers_BlishHUD {
             _hideDirectionsSetting = _alertSettingCollection.DefineSetting("HideDirections", false);
             _hideMarkersSetting = _alertSettingCollection.DefineSetting("HideMarkers", false);
             _centerAlertContainerSetting = _alertSettingCollection.DefineSetting("CenterAlertContainer", true);
-            _alertSizeSetting = _alertSettingCollection.DefineSetting("AlertSize", AlertType.Medium);
+            _alertSizeSetting = _alertSettingCollection.DefineSetting("AlertSize", AlertType.BigWigStyle);
             _alertDisplayOrientationSetting =
-                _alertSettingCollection.DefineSetting("AlertDisplayOrientation", ControlFlowDirection.SingleLeftToRight);
+                _alertSettingCollection.DefineSetting("AlertDisplayOrientation", ControlFlowDirection.TopToBottom);
             _alertContainerLocationSetting = _alertSettingCollection.DefineSetting("AlertContainerLocation", Point.Zero);
-            _alertMoveDelaySetting = _alertSettingCollection.DefineSetting("AlertMoveSpeed", 1.0f);
-            _alertFadeDelaySetting = _alertSettingCollection.DefineSetting("AlertFadeSpeed", 1.0f);
+            _alertMoveDelaySetting         = _alertSettingCollection.DefineSetting("AlertMoveSpeed",         1.0f);
+            _alertFadeDelaySetting         = _alertSettingCollection.DefineSetting("AlertFadeSpeed",         1.0f);
+            _alertFillDirection            = _alertSettingCollection.DefineSetting("FillDirection",          true);
         }
 
         private void SettingsUpdateShowDebug(object sender = null, EventArgs e = null) {
@@ -499,7 +501,7 @@ namespace Charr.Timers_BlishHUD {
                     timerPanel.Bottom + StandardButton.ControlStandard.ControlOffset.Y);
 
             // 2. Alert Settings Window
-            _alertSettingsWindow = new StandardWindow(Resources.AlertSettingsBackground, new Rectangle(24, 17, 505, 390), new Rectangle(38, 45, 472, 350)) {
+            _alertSettingsWindow = new StandardWindow(Resources.AlertSettingsBackground, new Rectangle(24, 17, 505, 390), new Rectangle(38, 38, 472, 350)) {
                 Parent        = GameService.Graphics.SpriteScreen,
                 Title         = "Alert Settings",
                 Emblem        = Resources.TextureTimerEmblem,
@@ -524,7 +526,7 @@ namespace Charr.Timers_BlishHUD {
                 BasicTooltipText = "When enabled, the alerts container will be locked and cannot be moved.",
                 Location = new Point(
                     Control.ControlStandard.ControlOffset.X,
-                    Control.ControlStandard.ControlOffset.Y)
+                    0)
             };
             lockAlertsWindowCB.Checked = _lockAlertContainerSetting.Value;
             lockAlertsWindowCB.CheckedChanged += delegate {
@@ -591,13 +593,26 @@ namespace Charr.Timers_BlishHUD {
                 _hideMarkersSetting.Value = hideMarkersCB.Checked;
             };
 
+            Checkbox fillDirection = new Checkbox {
+                Parent = _alertSettingsWindow,
+                Text   = "Invert Alert Fill",
+                BasicTooltipText = "When enabled, alerts fill up as time passes.\nWhen disabled, alerts drain as time passes.",
+                Location = new Point(Control.ControlStandard.ControlOffset.X,
+                                     hideMarkersCB.Bottom + Control.ControlStandard.ControlOffset.Y)
+            };
+            fillDirection.Checked = _alertFillDirection.Value;
+
+            fillDirection.CheckedChanged += delegate {
+                _alertFillDirection.Value = fillDirection.Checked;
+            };
+
             Label alertSizeLabel = new Label {
                 Parent = _alertSettingsWindow,
                 Text = "Alert Size",
                 AutoSizeWidth = true,
                 Location = new Point(
                     Control.ControlStandard.ControlOffset.X,
-                    hideMarkersCB.Bottom + Control.ControlStandard.ControlOffset.Y)
+                    fillDirection.Bottom + Control.ControlStandard.ControlOffset.Y)
             };
 
             Dropdown alertSizeDropdown = new Dropdown {
