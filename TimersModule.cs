@@ -118,9 +118,9 @@ namespace Charr.Timers_BlishHUD {
             _hideDirectionsSetting = _alertSettingCollection.DefineSetting("HideDirections", false);
             _hideMarkersSetting = _alertSettingCollection.DefineSetting("HideMarkers", false);
             _centerAlertContainerSetting = _alertSettingCollection.DefineSetting("CenterAlertContainer", true);
-            _alertSizeSetting = _alertSettingCollection.DefineSetting("AlertSize", AlertType.Medium);
+            _alertSizeSetting = _alertSettingCollection.DefineSetting("AlertSize", AlertType.BigWigStyle);
             _alertDisplayOrientationSetting =
-                _alertSettingCollection.DefineSetting("AlertDisplayOrientation", ControlFlowDirection.SingleLeftToRight);
+                _alertSettingCollection.DefineSetting("AlertDisplayOrientation", ControlFlowDirection.TopToBottom);
             _alertContainerLocationSetting = _alertSettingCollection.DefineSetting("AlertContainerLocation", Point.Zero);
             _alertMoveDelaySetting = _alertSettingCollection.DefineSetting("AlertMoveSpeed", 1.0f);
             _alertFadeDelaySetting = _alertSettingCollection.DefineSetting("AlertFadeSpeed", 1.0f);

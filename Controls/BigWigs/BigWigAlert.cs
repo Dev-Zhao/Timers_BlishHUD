@@ -66,7 +66,7 @@ namespace Charr.Timers_BlishHUD.Controls.BigWigs {
 
             int progressLeft = TOP_BORDER + ICON_SIZE + 1;
             _progressBounds = new Rectangle(progressLeft,      TOP_BORDER,        this.Width - progressLeft - 1,                                    this.Height - TOP_BORDER - BOTTOM_BORDER);
-            _filledBounds   = new Rectangle(_progressBounds.X, _progressBounds.Y, (int)(_progressBounds.Width * (this.CurrentFill / this.MaxFill)), _progressBounds.Height);
+            _filledBounds   = new Rectangle(_progressBounds.X, _progressBounds.Y, _progressBounds.Width - (int)(_progressBounds.Width * (this.CurrentFill / this.MaxFill)), _progressBounds.Height);
 
             _useSmallText = this.Text != null && this.Text.Contains("\n");
 
@@ -108,7 +108,6 @@ namespace Charr.Timers_BlishHUD.Controls.BigWigs {
                     timerFormat = "0.0";
                     timerColor  = Color.Yellow;
                     goto case -1;
-                    break;
                 case <= 0:
                     break;
             }
