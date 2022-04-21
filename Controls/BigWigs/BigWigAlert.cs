@@ -87,9 +87,8 @@ namespace Charr.Timers_BlishHUD.Controls.BigWigs {
             spriteBatch.DrawOnCtrl(this, ContentService.Textures.Pixel,                          _filledBounds,   this.FillColor * 0.45f);
 
             // Text
-            spriteBatch.DrawStringOnCtrl(this, this.Text, _useSmallText ? GameService.Content.DefaultFont14 : GameService.Content.DefaultFont18, _progressBounds.OffsetBy(11, 1), Color.Black);
-            spriteBatch.DrawStringOnCtrl(this, this.Text, _useSmallText ? GameService.Content.DefaultFont14 : GameService.Content.DefaultFont18, _progressBounds.OffsetBy(10, 0), this.TextColor);
-
+            spriteBatch.DrawStringOnCtrl(this, this.Text, _useSmallText ? GameService.Content.DefaultFont14 : GameService.Content.DefaultFont18, _progressBounds.OffsetBy(11, -1), Color.Black);
+            spriteBatch.DrawStringOnCtrl(this, this.Text, _useSmallText ? GameService.Content.DefaultFont14 : GameService.Content.DefaultFont18, _progressBounds.OffsetBy(10, -2), this.TextColor);
 
             // Timer
             float remainingTime = this.MaxFill - this.CurrentFill;
