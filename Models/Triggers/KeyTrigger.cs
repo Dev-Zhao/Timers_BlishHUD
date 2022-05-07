@@ -15,11 +15,12 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
     {
         // Serialized members
         // Keys can be found here: "https://docs.microsoft.com/en-us/previous-versions/windows/xna/bb197781(v=xnagamestudio.42)"
-        [JsonProperty("key")]
-        public String Key { get; set; }
+        //[JsonProperty("key")]
+        //public String Key { get; set; }
         // Valid Modifier keys: None, Ctrl, Alt, Shift
-        [JsonProperty("keyModifier")]
-        public String KeyModifier { get; set; }
+        //[JsonProperty("keyModifier")]
+        //public String KeyModifier { get; set; }
+        [JsonProperty("keyBind")] public int KeyBind { get; set; } = 0;
 
         // Private members
         private Keys _key;
@@ -42,22 +43,19 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
                 if (Antipode?.Count != 3 && Radius <= 0)
                     return "invalid radius/size";
             }
-            if (!CombatRequired && !OutOfCombatRequired && !EntryRequired && !DepartureRequired && Key == null)
+            if (!CombatRequired && !OutOfCombatRequired && !EntryRequired && !DepartureRequired && TimersModule.ModuleInstance._keyBindSettings[KeyBind].Value.PrimaryKey == 0)
                 return "No possible trigger conditions.";
 
-            if (Key != null)
-            {
-                try
-                {
-                    // Convert key strings to appropriate Enum
-                    _key = (Keys)Enum.Parse(typeof(Keys), Key, true);
-                    _keyModifier = (KeyModifier == null) ? ModifierKeys.None : (ModifierKeys)Enum.Parse(typeof(ModifierKeys), KeyModifier, true);
-                }
-                catch (Exception e)
-                {
-                    return e.Message;
-                }
-            }
+            //if (Key != null) {
+            //    try {
+            //        // Convert key strings to appropriate Enum
+            //        _key = (Keys)Enum.Parse(typeof(Keys), Key, true);
+            //        _keyModifier = (KeyModifier == null) ? ModifierKeys.None : (ModifierKeys)Enum.Parse(typeof(ModifierKeys), KeyModifier, true);
+            //    }
+            //    catch (Exception e) {
+            //        return e.Message;
+            //    }
+            //}
 
             // Create handler for KeyPress events
             _keyPressedHandler = new EventHandler<KeyboardEventArgs>(HandleKeyPressEvents);
@@ -89,7 +87,7 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
 
         public override bool Triggered()
         {
-            if (Key == null) { return true; }
+            if (TimersModule.ModuleInstance._keyBindSettings[KeyBind].Value.PrimaryKey == 0) { return true; }
 
             // Keys must be pressed to trigger
             return _keysPressed;
@@ -101,7 +99,7 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
             if (!_enabled)
                 return;
             // Wrong keys have been pressed
-            if (args.Key != _key || (GameService.Input.Keyboard.ActiveModifiers & _keyModifier) != _keyModifier)
+            if (args.Key != TimersModule.ModuleInstance._keyBindSettings[KeyBind].Value.PrimaryKey || (GameService.Input.Keyboard.ActiveModifiers & TimersModule.ModuleInstance._keyBindSettings[KeyBind].Value.ModifierKeys) != TimersModule.ModuleInstance._keyBindSettings[KeyBind].Value.ModifierKeys)
                 return;
             // Player needs to be in combat but they are not
             if (!TimersModule.ModuleInstance._debugModeSetting.Value && CombatRequired && !GameService.Gw2Mumble.PlayerCharacter.IsInCombat)

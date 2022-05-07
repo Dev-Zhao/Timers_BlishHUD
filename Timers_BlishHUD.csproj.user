@@ -2,7 +2,7 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <StartAction>Program</StartAction>
-    <StartArguments>--debug --module "C:\Users\dade\Source\Repos\Timers_BlishHUD\bin\x64\Debug\Timers_BlishHUD.bhm"</StartArguments>
-    <StartProgram>C:\Users\dade\source\repos\BHR\Blish-HUD\Blish HUD\bin\x64\Debug\net472\Blish HUD.exe</StartProgram>
+    <StartArguments>--debug --module "C:\Users\Charlie\Desktop\Timers_BlishHUD\bin\x64\Debug\Timers_BlishHUD.bhm" --unlockfps</StartArguments>
+    <StartProgram>C:\Program Files %28x86%29\Guild Wars 2\Blish.HUD.0.11.0\Blish HUD.exe</StartProgram>
   </PropertyGroup>
 </Project>

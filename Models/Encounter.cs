@@ -72,7 +72,7 @@ namespace Charr.Timers_BlishHUD.Models {
         }
 
         public bool Active { get; private set; } = false;
-        public bool Invalid { get; private set; } = true;
+        public bool Valid { get; private set; } = false;
         public AsyncTexture2D Icon { get; set; }
 
         // Private members
@@ -112,7 +112,7 @@ namespace Charr.Timers_BlishHUD.Models {
                     throw new TimerReadException(Id + ": " + message);
             }
 
-            Invalid = false;
+            Valid = true;
         }
 
         private void Activate() {

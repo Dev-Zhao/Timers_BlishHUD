@@ -12,7 +12,6 @@ using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
@@ -28,9 +27,9 @@ namespace Charr.Timers_BlishHUD {
         BigWigStyle
     }
 
-    [Export(typeof(Module))]
-    public class TimersModule : Module {
-        private static readonly Logger Logger = Logger.GetLogger<Module>();
+    [Export(typeof(Blish_HUD.Modules.Module))]
+    public class TimersModule : Blish_HUD.Modules.Module {
+        private static readonly Logger Logger = Logger.GetLogger<Blish_HUD.Modules.Module>();
 
         internal static TimersModule ModuleInstance;
 
@@ -54,8 +53,8 @@ namespace Charr.Timers_BlishHUD {
         // Controls - Tab
         private WindowTab _timersTab;
         private Panel _tabPanel;
-        private List<TimerDetailsButton> _allTimerDetails;
-        private List<TimerDetailsButton> _displayedTimerDetails;
+        private List<TimerDetails> _allTimerDetails;
+        private List<TimerDetails> _displayedTimerDetails;
 
         private Label _debugText;
 
@@ -82,7 +81,8 @@ namespace Charr.Timers_BlishHUD {
         public SettingEntry<bool> _debugModeSetting;
         private Dictionary<String, SettingEntry<bool>> _encounterEnableSettings;
         private SettingEntry<bool> _sortCategorySetting;
-        private SettingCollection _timerSettingCollection;
+        public SettingCollection _timerSettingCollection;
+        public SettingEntry<KeyBinding>[] _keyBindSettings;
 
         private SettingCollection _alertSettingCollection;
         private SettingEntry<bool> _lockAlertContainerSetting;
@@ -112,6 +112,11 @@ namespace Charr.Timers_BlishHUD {
             _sortCategorySetting = settings.DefineSetting("SortByCategory", false, "Sort Categories",
                 "When enabled, categories from loaded timer files are sorted in alphanumerical order.\nOtherwise, categories are in the order they are loaded.\nThe module needs to be restarted to take effect."); ;
             _timerSettingCollection = settings.AddSubCollection("EnabledTimers", false);
+            _keyBindSettings = new SettingEntry<KeyBinding>[5];
+            for (int i = 0; i < 5; i++) {
+                _keyBindSettings[i] = settings.DefineSetting("Key Bind" + i, new KeyBinding(), "Key Bind" + i,
+                    "For creating timers. Placed in top-left corner. Displays location status.");
+            }
 
             _alertSettingCollection = settings.AddSubCollection("AlertSetting", false);
             _lockAlertContainerSetting = _alertSettingCollection.DefineSetting("LockAlertContainer", false);
@@ -233,7 +238,7 @@ namespace Charr.Timers_BlishHUD {
             _encounters = new List<Encounter>();
             _activeEncounters = new List<Encounter>();
             _invalidEncounters = new List<Encounter>();
-            _allTimerDetails = new List<TimerDetailsButton>();
+            _allTimerDetails = new List<TimerDetails>();
             _testAlertPanels = new List<IAlertPanel>();
             _debugText = new Label {
                 Parent = GameService.Graphics.SpriteScreen,
@@ -482,7 +487,7 @@ namespace Charr.Timers_BlishHUD {
 
             searchBox.Width = menuSection.Width;
             searchBox.TextChanged += delegate(object sender, EventArgs args) {
-                timerPanel.FilterChildren<TimerDetailsButton>(
+                timerPanel.FilterChildren<TimerDetails>(
                     db => db.Text.ToLower().Contains(searchBox.Text.ToLower()));
             };
 
@@ -881,79 +886,24 @@ namespace Charr.Timers_BlishHUD {
 
             // 2. Timer Entries
             foreach (Encounter enc in _invalidEncounters) {
-                TimerDetailsButton entry = new TimerDetailsButton {
+                TimerDetails entry = new TimerDetails {
                     Parent = timerPanel,
                     Encounter = enc,
-                    Text = enc.Name + "\nLoading error\nHover for details",
-                    IconSize = DetailsIconSize.Small,
-                    BackgroundColor = Color.DarkRed,
-                    ShowVignette = false,
-                    HighlightType = DetailsHighlightType.LightHighlight,
-                    ShowToggleButton = true,
-                    Icon = enc.Icon ?? ContentService.Textures.TransparentPixel,
-                    BasicTooltipText = enc.Description
                 };
-
-                if (!string.IsNullOrEmpty(enc.Author)) {
-                    GlowButton authButton = new GlowButton {
-                        Icon = Resources.TextureDescription,
-                        BasicTooltipText = "By: " + enc.Author,
-                        Parent = entry
-                    };
-                }
-
-                GlowButton toggleButton = new GlowButton {
-                    Parent = entry,
-                    Icon = Resources.TextureX,
-                    ToggleGlow = true,
-                    BasicTooltipText = enc.Description,
-                    Enabled = false
-                };
+                entry.Initialize();
 
                 _allTimerDetails.Add(entry);
             }
 
             foreach (Encounter enc in _encounters) {
-                SettingEntry<bool> setting = _timerSettingCollection.DefineSetting("TimerEnable:" + enc.Id, enc.Enabled);
-                enc.Enabled = setting.Value;
-                _encounterEnableSettings.Add("TimerEnable:" + enc.Id, setting);
-
-                TimerDetailsButton entry = new TimerDetailsButton {
+                TimerDetails entry = new TimerDetails {
                     Parent = timerPanel,
                     Encounter = enc,
-                    Text = enc.Name,
-                    IconSize = DetailsIconSize.Small,
-                    ShowVignette = false,
-                    HighlightType = DetailsHighlightType.LightHighlight,
-                    ShowToggleButton = true,
-                    ToggleState = enc.Enabled,
-                    Icon = enc.Icon,
-                    BasicTooltipText = enc.Description
                 };
 
-                if (!string.IsNullOrEmpty(enc.Author)) {
-                    GlowButton authButton = new GlowButton {
-                        Icon = Resources.TextureDescription,
-                        BasicTooltipText = "By: " + enc.Author,
-                        Parent = entry
-                    };
-                }
+                entry.Initialize();
 
-                GlowButton toggleButton = new GlowButton {
-                    Icon = Resources.TextureEye,
-                    ActiveIcon = Resources.TextureEyeActive,
-                    BasicTooltipText = "Click to toggle timer",
-                    ToggleGlow = true,
-                    Checked = enc.Enabled,
-                    Parent = entry
-                };
-
-                toggleButton.Click += delegate {
-                    enc.Enabled = toggleButton.Checked;
-                    setting.Value = toggleButton.Checked;
-                    entry.ToggleState = toggleButton.Checked;
-                    ResetActivatedEncounters();
-                };
+                entry.PropertyChanged += delegate { ResetActivatedEncounters(); };
 
                 _allTimerDetails.Add(entry);
             }
@@ -970,30 +920,30 @@ namespace Charr.Timers_BlishHUD {
             allTimers.Select();
             _displayedTimerDetails = _allTimerDetails.Where(db => true).ToList();
             allTimers.Click += delegate {
-                timerPanel.FilterChildren<TimerDetailsButton>(db => true);
+                timerPanel.FilterChildren<TimerDetails>(db => true);
                 _displayedTimerDetails = _allTimerDetails.Where(db => true).ToList();
             };
 
             MenuItem enabledTimers = timerCategories.AddMenuItem("Enabled Timers");
             enabledTimers.Click += delegate {
-                timerPanel.FilterChildren<TimerDetailsButton>(db => db.Encounter.Enabled);
+                timerPanel.FilterChildren<TimerDetails>(db => db.Encounter.Enabled);
                 _displayedTimerDetails = _allTimerDetails.Where(db => db.Encounter.Enabled).ToList();
             };
 
             MenuItem mapTimers = timerCategories.AddMenuItem("Current Map");
             mapTimers.Click += delegate {
-                timerPanel.FilterChildren<TimerDetailsButton>(db =>
+                timerPanel.FilterChildren<TimerDetails>(db =>
                     (db.Encounter.Map == GameService.Gw2Mumble.CurrentMap.Id));
                 _displayedTimerDetails = _allTimerDetails.Where(db =>
                     (db.Encounter.Map == GameService.Gw2Mumble.CurrentMap.Id)).ToList();
             };
 
-            if (_encounters.Any(e => e.Invalid)) {
+            if (_encounters.Any(e => !e.Valid)) {
                 MenuItem invalidTimers = timerCategories.AddMenuItem("Invalid Timers");
 
                 invalidTimers.Click += delegate {
-                    timerPanel.FilterChildren<TimerDetailsButton>(db => db.Encounter.Invalid);
-                    _displayedTimerDetails = _allTimerDetails.Where(db => db.Encounter.Invalid).ToList();
+                    timerPanel.FilterChildren<TimerDetails>(db => !db.Encounter.Valid);
+                    _displayedTimerDetails = _allTimerDetails.Where(db => !db.Encounter.Valid).ToList();
                 };
             }
 
@@ -1006,7 +956,7 @@ namespace Charr.Timers_BlishHUD {
             foreach (IGrouping<string, Encounter> category in categories) {
                 MenuItem cat = timerCategories.AddMenuItem(category.Key);
                 cat.Click += delegate {
-                    timerPanel.FilterChildren<TimerDetailsButton>(db =>
+                    timerPanel.FilterChildren<TimerDetails>(db =>
                         string.Equals(db.Encounter.Category, category.Key));
                     _displayedTimerDetails = _allTimerDetails.Where(db =>
                         string.Equals(db.Encounter.Category, category.Key)).ToList();
@@ -1022,7 +972,7 @@ namespace Charr.Timers_BlishHUD {
 
                 _displayedTimerDetails.ForEach(db => {
                     // Ignore Encounters that have errors
-                    if (!db.Encounter.Invalid) {
+                    if (db.Encounter.Valid) {
                         // Find the toggle button and check it
                         GlowButton glowButton = (GlowButton) db.Children.Where(c => {
                             return c is GlowButton && ((GlowButton) c).ToggleGlow;
@@ -1030,7 +980,10 @@ namespace Charr.Timers_BlishHUD {
                         glowButton.Checked = true;
                         // Enable the encounter
                         db.Encounter.Enabled = true;
-                        _encounterEnableSettings["TimerEnable:" + db.Encounter.Id].Value = true;
+                        SettingEntry<bool> setting;
+                        bool settingFound =
+                            _timerSettingCollection.TryGetSetting("TimerEnable:" + db.Encounter.Id, out setting);
+                        setting.Value = true;
                     }
                 });
             };
@@ -1038,7 +991,7 @@ namespace Charr.Timers_BlishHUD {
             disableAllButton.Click += delegate {
                 _displayedTimerDetails.ForEach(db => {
                     // Ignore Encounters that have errors
-                    if (!db.Encounter.Invalid) {
+                    if (db.Encounter.Valid) {
                         // Find the toggle button and check it
                         GlowButton glowButton = (GlowButton) db.Children.Where(c => {
                             return c is GlowButton && ((GlowButton) c).ToggleGlow;
@@ -1046,12 +999,15 @@ namespace Charr.Timers_BlishHUD {
                         glowButton.Checked = false;
                         // Disable the encounter
                         db.Encounter.Enabled = false;
-                        _encounterEnableSettings["TimerEnable:" + db.Encounter.Id].Value = false;
+                        SettingEntry<bool> setting;
+                        bool settingFound =
+                            _timerSettingCollection.TryGetSetting("TimerEnable:" + db.Encounter.Id, out setting);
+                        setting.Value = true;
                     }
                 });
                 // If only showing enabled timers, need to update the timerPanel to hide all the disabled timers
                 if (timerCategories.SelectedMenuItem == enabledTimers) {
-                    timerPanel.FilterChildren<TimerDetailsButton>(db => db.Encounter.Enabled);
+                    timerPanel.FilterChildren<TimerDetails>(db => db.Encounter.Enabled);
                 }
             };
 

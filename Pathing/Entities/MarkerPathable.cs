@@ -3,6 +3,8 @@ using Blish_HUD;
 using Blish_HUD.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SharpDX.MediaFoundation.DirectX;
+using Color = Microsoft.Xna.Framework.Color;
 
 namespace Charr.Timers_BlishHUD.Pathing.Entities
 {

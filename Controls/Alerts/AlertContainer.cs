@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Blish_HUD.Controls;
 using Blish_HUD.Input;
 using Glide;
@@ -11,6 +8,8 @@ using Microsoft.Xna.Framework;
 
 namespace Charr.Timers_BlishHUD.Controls {
     public class AlertContainer : Panel {
+        
+        
         protected bool _lock = false;
 
         public bool Lock {

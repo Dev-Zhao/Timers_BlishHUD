@@ -26,6 +26,8 @@ namespace Charr.Timers_BlishHUD.Controls {
         public readonly Texture2D TextureEyeActive;
         public readonly Texture2D TextureFade;
         public readonly Texture2D TextureX;
+        public readonly Texture2D TextureScout;
+        public readonly Texture2D TextureRefresh;
         public readonly Texture2D TextureDescription;
         public readonly Texture2D TextureTimerEmblem;
         public readonly Texture2D AlertSettingsBackground;
@@ -80,6 +82,8 @@ namespace Charr.Timers_BlishHUD.Controls {
             TextureTimerEmblem = TimersModule.ModuleInstance.ContentsManager.GetTexture(@"textures\841720.png");
             TextureFade = TimersModule.ModuleInstance.ContentsManager.GetTexture(@"textures\uniformclouds_blur30.png");
             TextureX = TimersModule.ModuleInstance.ContentsManager.GetTexture(@"textures\x.png");
+            TextureScout = TimersModule.ModuleInstance.ContentsManager.GetTexture(@"textures\scout.png");
+            TextureRefresh = TimersModule.ModuleInstance.ContentsManager.GetTexture(@"textures\refresh.png");
 
             AlertSettingsBackground = TimersModule.ModuleInstance.ContentsManager.GetTexture(@"textures\502049.png");
 
