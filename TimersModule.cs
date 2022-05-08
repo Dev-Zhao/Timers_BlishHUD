@@ -1002,7 +1002,7 @@ namespace Charr.Timers_BlishHUD {
                         SettingEntry<bool> setting;
                         bool settingFound =
                             _timerSettingCollection.TryGetSetting("TimerEnable:" + db.Encounter.Id, out setting);
-                        setting.Value = true;
+                        setting.Value = false;
                     }
                 });
                 // If only showing enabled timers, need to update the timerPanel to hide all the disabled timers

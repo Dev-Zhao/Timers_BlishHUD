@@ -21,7 +21,7 @@ namespace Charr.Timers_BlishHUD.Controls {
 
                 _enableSettingName = "TimerEnable:" + _encounter.Id;
                 _enableSetting = TimersModule.ModuleInstance._timerSettingCollection.DefineSetting(_enableSettingName, _encounter.Enabled);
-                _encounter.Enabled = _encounter.Valid ? _enableSetting.Value : false;
+                _encounter.Enabled = _encounter.Valid && _enableSetting.Value;
 
                 Text = _encounter.Name + (_encounter.Valid ? "" : "\nLoading Error\nCheck Description for Details\n");
                 ToggleState = _encounter.Enabled;
