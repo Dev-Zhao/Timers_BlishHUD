@@ -13,6 +13,19 @@ namespace Charr.Timers_BlishHUD.Controls {
         private readonly GlowButton _descButton;
         private readonly GlowButton _reloadButton;
 
+        private new bool _enabled;
+        public new bool Enabled {
+            get => _enabled;
+            set {
+                if (SetProperty(ref _enabled, value)) {
+                    if (_enableSetting != null) _enableSetting.Value = _enabled;
+                    if (_encounter != null) _encounter.Enabled = _enabled;
+                    if (_toggleButton != null) _toggleButton.Checked = _enabled;
+                    ToggleState = _enabled;
+                }
+            }
+        }
+
         private Encounter _encounter;
         public Encounter Encounter {
             get => _encounter;
@@ -21,10 +34,9 @@ namespace Charr.Timers_BlishHUD.Controls {
 
                 _enableSettingName = "TimerEnable:" + _encounter.Id;
                 _enableSetting = TimersModule.ModuleInstance._timerSettingCollection.DefineSetting(_enableSettingName, _encounter.Enabled);
-                _encounter.Enabled = _encounter.Valid && _enableSetting.Value;
+                Enabled = _encounter.Valid && _enableSetting.Value;
 
                 Text = _encounter.Name + (_encounter.Valid ? "" : "\nLoading Error\nCheck Description for Details\n");
-                ToggleState = _encounter.Enabled;
                 Icon =  _encounter.Icon ?? ContentService.Textures.TransparentPixel;
 
                 _authButton.Visible = !string.IsNullOrEmpty(_encounter.Author);
@@ -39,9 +51,7 @@ namespace Charr.Timers_BlishHUD.Controls {
 
                 if (_encounter.Valid) {
                     _toggleButton.Click += delegate {
-                        _encounter.Enabled = _toggleButton.Checked;
-                        _enableSetting.Value = _toggleButton.Checked;
-                        ToggleState = _toggleButton.Checked;
+                        Enabled = _toggleButton.Checked;
                     };
                 }
             }

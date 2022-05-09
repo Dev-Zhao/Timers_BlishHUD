@@ -973,17 +973,7 @@ namespace Charr.Timers_BlishHUD {
                 _displayedTimerDetails.ForEach(db => {
                     // Ignore Encounters that have errors
                     if (db.Encounter.Valid) {
-                        // Find the toggle button and check it
-                        GlowButton glowButton = (GlowButton) db.Children.Where(c => {
-                            return c is GlowButton && ((GlowButton) c).ToggleGlow;
-                        }).First();
-                        glowButton.Checked = true;
-                        // Enable the encounter
-                        db.Encounter.Enabled = true;
-                        SettingEntry<bool> setting;
-                        bool settingFound =
-                            _timerSettingCollection.TryGetSetting("TimerEnable:" + db.Encounter.Id, out setting);
-                        setting.Value = true;
+                        db.Enabled = true;
                     }
                 });
             };
@@ -992,22 +982,12 @@ namespace Charr.Timers_BlishHUD {
                 _displayedTimerDetails.ForEach(db => {
                     // Ignore Encounters that have errors
                     if (db.Encounter.Valid) {
-                        // Find the toggle button and check it
-                        GlowButton glowButton = (GlowButton) db.Children.Where(c => {
-                            return c is GlowButton && ((GlowButton) c).ToggleGlow;
-                        }).First();
-                        glowButton.Checked = false;
-                        // Disable the encounter
-                        db.Encounter.Enabled = false;
-                        SettingEntry<bool> setting;
-                        bool settingFound =
-                            _timerSettingCollection.TryGetSetting("TimerEnable:" + db.Encounter.Id, out setting);
-                        setting.Value = false;
+                        db.Enabled = false;
                     }
                 });
                 // If only showing enabled timers, need to update the timerPanel to hide all the disabled timers
                 if (timerCategories.SelectedMenuItem == enabledTimers) {
-                    timerPanel.FilterChildren<TimerDetails>(db => db.Encounter.Enabled);
+                    timerPanel.FilterChildren<TimerDetails>(db => db.Enabled);
                 }
             };
 
