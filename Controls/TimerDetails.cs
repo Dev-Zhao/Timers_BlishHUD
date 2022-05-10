@@ -30,7 +30,7 @@ namespace Charr.Timers_BlishHUD.Controls {
         public Encounter Encounter {
             get => _encounter;
             set {
-                _encounter = value;
+                if (!SetProperty(ref _encounter, value)) { return; }
 
                 _enableSettingName = "TimerEnable:" + _encounter.Id;
                 _enableSetting = TimersModule.ModuleInstance._timerSettingCollection.DefineSetting(_enableSettingName, _encounter.Enabled);

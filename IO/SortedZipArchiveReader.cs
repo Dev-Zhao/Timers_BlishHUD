@@ -56,6 +56,11 @@ namespace Charr.Timers_BlishHUD {
             );
         }
 
+        public List<ZipArchiveEntry> GetValidFileEntries(string fileExtension) {
+            return _archive.Entries.Where(e => e.Name.EndsWith($"{fileExtension}", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
         private string GetUniformFileName(string filePath) {
             return filePath.Replace(@"\", "/").Replace("//", "/").Trim();
         }

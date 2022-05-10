@@ -18,6 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Charr.Timers_BlishHUD.Controls.BigWigs;
+using Charr.Timers_BlishHUD.IO;
 
 namespace Charr.Timers_BlishHUD {
     public enum AlertType {
@@ -324,7 +325,7 @@ namespace Charr.Timers_BlishHUD {
 
         protected override async Task LoadAsync() {
             string timerDirectory = DirectoriesManager.GetFullDirectoryPath("timers");
-            DirectoryReader directoryReader = new DirectoryReader(timerDirectory);
+            /*DirectoryReader directoryReader = new DirectoryReader(timerDirectory);
             PathableResourceManager _directResourceManager = new PathableResourceManager(directoryReader);
             _pathableResourceManagers.Add(_directResourceManager);
 
@@ -348,7 +349,10 @@ namespace Charr.Timers_BlishHUD {
                 zipDataReader.LoadOnFileType(
                     (Stream fileStream, IDataReader dataReader) => { readJson(fileStream, zipResourceManager); },
                     ".bhtimer");
-            }
+            }*/
+
+            TimerLoader loader = new TimerLoader(timerDirectory);
+            loader.LoadFiles(readJson);
 
             _encountersLoaded = true;
             _tabPanel = BuildSettingsPanel(GameService.Overlay.BlishHudWindow.ContentRegion);

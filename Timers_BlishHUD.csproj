@@ -72,6 +72,7 @@
     <Compile Include="Controls\Effects\SimpleScrollingHighlightEffect.cs" />
     <Compile Include="Controls\Alerts\IAlertPanel.cs" />
     <Compile Include="Controls\TimerDetails.cs" />
+    <Compile Include="IO\TimerLoader.cs" />
     <Compile Include="Pathing\Entities\Billboard.cs" />
     <Compile Include="Pathing\Entities\Entity.cs" />
     <Compile Include="Pathing\Entities\EntityBillboard.cs" />
@@ -90,9 +91,9 @@
     <Compile Include="Models\Triggers\LocationTrigger.cs" />
     <Compile Include="Models\Triggers\TriggerConverter.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="Utils\PathableResourceManager.cs" />
+    <Compile Include="IO\PathableResourceManager.cs" />
     <Compile Include="Pathing\Entities\TrailPathable.cs" />
-    <Compile Include="Utils\SortedZipArchiveReader.cs" />
+    <Compile Include="IO\SortedZipArchiveReader.cs" />
     <Compile Include="TimersModule.cs" />
   </ItemGroup>
   <ItemGroup>
