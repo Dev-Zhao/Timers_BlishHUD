@@ -1,10 +1,12 @@
-﻿using Blish_HUD;
+﻿using System;
+using Blish_HUD;
 using Blish_HUD.Controls;
 using Blish_HUD.Settings;
 using Charr.Timers_BlishHUD.Models;
+using Microsoft.Xna.Framework;
 
 namespace Charr.Timers_BlishHUD.Controls {
-    class TimerDetails : DetailsButton {
+    public class TimerDetails : DetailsButton {
         private string _enableSettingName;
         private SettingEntry<bool> _enableSetting;
 
@@ -12,6 +14,9 @@ namespace Charr.Timers_BlishHUD.Controls {
         private readonly GlowButton _toggleButton;
         private readonly GlowButton _descButton;
         private readonly GlowButton _reloadButton;
+
+        public event EventHandler<Encounter> TimerToggled;
+        public event EventHandler<Encounter> ReloadClicked;
 
         private new bool _enabled;
         public new bool Enabled {
@@ -30,7 +35,7 @@ namespace Charr.Timers_BlishHUD.Controls {
         public Encounter Encounter {
             get => _encounter;
             set {
-                if (!SetProperty(ref _encounter, value)) { return; }
+                _encounter = value;
 
                 _enableSettingName = "TimerEnable:" + _encounter.Id;
                 _enableSetting = TimersModule.ModuleInstance._timerSettingCollection.DefineSetting(_enableSettingName, _encounter.Enabled);
@@ -52,8 +57,11 @@ namespace Charr.Timers_BlishHUD.Controls {
                 if (_encounter.Valid) {
                     _toggleButton.Click += delegate {
                         Enabled = _toggleButton.Checked;
+                        TimerToggled?.Invoke(this, this.Encounter);
                     };
                 }
+
+                this.Invalidate();
             }
         }
 
@@ -76,6 +84,9 @@ namespace Charr.Timers_BlishHUD.Controls {
                 Icon = TimersModule.ModuleInstance.Resources.TextureRefresh,
                 BasicTooltipText = "Click to reload timer",
                 Visible = true
+            };
+            _reloadButton.Click += delegate {
+                ReloadClicked?.Invoke(this, this.Encounter);
             };
 
             ShowToggleButton = true;

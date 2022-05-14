@@ -1,13 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.ServiceModel.Dispatcher;
 using Blish_HUD.Content;
 using Charr.Timers_BlishHUD.Pathing.Content;
 
 namespace Charr.Timers_BlishHUD.IO
 {
-    class TimerLoader: IDisposable {
+    public class TimerStream {
+        public Stream Stream { get; set; }
+        public PathableResourceManager ResourceManager { get; set; }
+
+        public string FileName { get; set; }
+        public bool IsFromZip { get; set; }
+        public string ZipFile { get; set; }
+
+        public TimerStream(Stream stream, PathableResourceManager resourceManager, string fileName, bool isFromZip = false,
+            string zipFile = "") {
+            Stream = stream;
+            ResourceManager = resourceManager;
+            FileName = fileName;
+            IsFromZip = isFromZip;
+            ZipFile = zipFile;
+        }
+
+    }
+
+    public class TimerLoader: IDisposable {
         private HashSet<String> _normalTimerFiles;
         private Dictionary<string, HashSet<ZipArchiveEntry>> _zipTimerFileEntries;
 
@@ -31,10 +52,10 @@ namespace Charr.Timers_BlishHUD.IO
             _zipResourceManagers = new Dictionary<string, PathableResourceManager>();
         }
 
-        public void LoadFiles(Action<Stream, PathableResourceManager> loadFileFunc) {
+        public void LoadFiles(Action<TimerStream> loadFileFunc) {
             _normalTimerFiles.UnionWith(Directory.GetFiles(TimerTimerDirectory, "*.bhtimer", SearchOption.AllDirectories));
             foreach (var file in _normalTimerFiles) {
-                loadFileFunc(_directoryReader.GetFileStream(file), _directoryResourceManager);
+                loadFileFunc(new TimerStream(_directoryReader.GetFileStream(file), _directoryResourceManager, file));
             }
 
             foreach (var zipFile in Directory.GetFiles(TimerTimerDirectory, "*.zip", SearchOption.AllDirectories)) {
@@ -48,25 +69,25 @@ namespace Charr.Timers_BlishHUD.IO
                 _zipTimerFileEntries[zipFile].UnionWith(zipDataReader.GetValidFileEntries(".bhtimer"));
 
                 foreach (var entry in _zipTimerFileEntries[zipFile]) {
-                    loadFileFunc(zipDataReader.GetFileStream(entry.Name), _zipResourceManagers[zipFile]);
+                    loadFileFunc(new TimerStream(zipDataReader.GetFileStream(entry.Name), _zipResourceManagers[zipFile], entry.Name, true, zipFile));
                 }
             }
         }
 
-        public void ReloadFile(Action<Stream, PathableResourceManager> loadFileFunc, string timerFileName) {
+        public void ReloadFile(Action<TimerStream> loadFileFunc, string timerFileName) {
             if (!_normalTimerFiles.Contains(timerFileName)) {
                 return;
             }
-            loadFileFunc.Invoke(_directoryReader.GetFileStream(timerFileName), _directoryResourceManager);
+            loadFileFunc.Invoke(new TimerStream(_directoryReader.GetFileStream(timerFileName), _directoryResourceManager, timerFileName));
         }
 
-        public void ReloadFile(Action<Stream, PathableResourceManager> loadFileFunc, string zipFile, string timerFileName) {
+        public void ReloadFile(Action<TimerStream> loadFileFunc, string zipFile, string timerFileName) {
             if (!_zipTimerFileEntries.ContainsKey(zipFile)) {
                 return;
             }
 
             var zipDataReader = _zipDataReaders[zipFile];
-            loadFileFunc.Invoke(zipDataReader.GetFileStream(timerFileName), _zipResourceManagers[zipFile]);
+            loadFileFunc.Invoke(new TimerStream(zipDataReader.GetFileStream(timerFileName), _zipResourceManagers[zipFile], timerFileName, true, zipFile));
         }
 
         public void Dispose() {

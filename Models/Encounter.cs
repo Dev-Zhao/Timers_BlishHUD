@@ -75,6 +75,19 @@ namespace Charr.Timers_BlishHUD.Models {
         public bool Valid { get; private set; } = false;
         public AsyncTexture2D Icon { get; set; }
 
+        public bool IsFromZip { get; set; } = false;
+        private string _zipFile;
+        public string ZipFile {
+            get => _zipFile;
+            set {
+                _zipFile = value;
+                if (_zipFile != String.Empty) {
+                    IsFromZip = true;
+                }
+            }
+        }
+        public string TimerFile { get; set; }
+
         // Private members
         private bool _activated = false;
         private bool _awaitingNextPhase = false;
@@ -86,6 +99,16 @@ namespace Charr.Timers_BlishHUD.Models {
         private DateTime _startTime;
         private DateTime _lastUpdate;
         private readonly int TICKRATE = 100;
+
+        public override bool Equals(Object obj) {
+            if ((obj == null) || !(this.GetType() == obj.GetType())) {
+                return false;
+            }
+            else {
+                Encounter enc = (Encounter)obj;
+                return (this.Id == enc.Id);
+            }
+        }
 
         public void Initialize(PathableResourceManager resourceManager) {
             Icon = TimersModule.ModuleInstance.Resources.GetIcon(IconString);

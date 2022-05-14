@@ -12,6 +12,7 @@ using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
@@ -70,9 +71,9 @@ namespace Charr.Timers_BlishHUD {
         public Dictionary<String, Alert> _activeAlertIds;
         public Dictionary<String, Direction> _activeDirectionIds;
         public Dictionary<String, Marker> _activeMarkerIds;
-        private List<Encounter> _encounters;
-        private List<Encounter> _activeEncounters;
-        private List<Encounter> _invalidEncounters;
+        private HashSet<Encounter> _encounters;
+        private HashSet<Encounter> _activeEncounters;
+        private HashSet<Encounter> _invalidEncounters;
 
         // New Map Loaded Event Listener
         private EventHandler<ValueEventArgs<int>> _onNewMapLoaded;
@@ -98,6 +99,8 @@ namespace Charr.Timers_BlishHUD {
         public SettingEntry<float> _alertFadeDelaySetting;
         public SettingEntry<bool> _alertFillDirection;
 
+        public TimerLoader timerLoader;
+
         [ImportingConstructor]
         public TimersModule([Import("ModuleParameters")] ModuleParameters moduleParameters) : base(moduleParameters) {
             ModuleInstance = this;
@@ -115,8 +118,8 @@ namespace Charr.Timers_BlishHUD {
             _timerSettingCollection = settings.AddSubCollection("EnabledTimers", false);
             _keyBindSettings = new SettingEntry<KeyBinding>[5];
             for (int i = 0; i < 5; i++) {
-                _keyBindSettings[i] = settings.DefineSetting("Key Bind" + i, new KeyBinding(), "Key Bind" + i,
-                    "For creating timers. Placed in top-left corner. Displays location status.");
+                _keyBindSettings[i] = settings.DefineSetting("Trigger Key " + i, new KeyBinding(), "Trigger Key " + i,
+                    "For timers that require keys to trigger.");
             }
 
             _alertSettingCollection = settings.AddSubCollection("AlertSetting", false);
@@ -152,7 +155,9 @@ namespace Charr.Timers_BlishHUD {
 
         private void SettingsUpdateHideAlerts(object sender = null, EventArgs e = null) {
             _testAlertPanels?.ForEach(panel => panel.ShouldShow = !_hideAlertsSetting.Value);
-            _encounters?.ForEach(enc => enc.ShowAlerts = !_hideAlertsSetting.Value);
+            foreach (var enc in _encounters) {
+                enc.ShowAlerts = !_hideAlertsSetting.Value;
+            }
             if (_alertContainer != null) {
                 if (_hideAlertsSetting.Value) {
                     _alertContainer?.Hide();
@@ -167,11 +172,15 @@ namespace Charr.Timers_BlishHUD {
         }
 
         private void SettingsUpdateHideDirections(object sender = null, EventArgs e = null) {
-            _encounters?.ForEach(enc => enc.ShowDirections = !_hideDirectionsSetting.Value);
+            foreach (var enc in _encounters) {
+                enc.ShowDirections = !_hideDirectionsSetting.Value;
+            }
         }
 
         private void SettingsUpdateHideMarkers(object sender = null, EventArgs e = null) {
-            _encounters?.ForEach(enc => enc.ShowMarkers = !_hideMarkersSetting.Value);
+            foreach (var enc in _encounters) {
+                enc.ShowMarkers = !_hideMarkersSetting.Value;
+            }
         }
 
         private void SettingsUpdateAlertSize(object sender = null, EventArgs e = null) {
@@ -236,9 +245,9 @@ namespace Charr.Timers_BlishHUD {
             _activeAlertIds = new Dictionary<String, Alert>();
             _activeDirectionIds = new Dictionary<String, Direction>();
             _activeMarkerIds = new Dictionary<String, Marker>();
-            _encounters = new List<Encounter>();
-            _activeEncounters = new List<Encounter>();
-            _invalidEncounters = new List<Encounter>();
+            _encounters = new HashSet<Encounter>();
+            _activeEncounters = new HashSet<Encounter>();
+            _invalidEncounters = new HashSet<Encounter>();
             _allTimerDetails = new List<TimerDetails>();
             _testAlertPanels = new List<IAlertPanel>();
             _debugText = new Label {
@@ -288,71 +297,72 @@ namespace Charr.Timers_BlishHUD {
                 _alertWindow.Hide();*/
         }
 
-        private void readJson(Stream fileStream, PathableResourceManager pathableResourceManager) {
+        private Encounter ParseEncounter(TimerStream timerStream) {
             string jsonContent;
-            using (var jsonReader = new StreamReader(fileStream)) {
+            using (var jsonReader = new StreamReader(timerStream.Stream)) {
                 jsonContent = jsonReader.ReadToEnd();
             }
 
             Encounter enc = null;
             try {
                 enc = JsonConvert.DeserializeObject<Encounter>(jsonContent, _jsonSettings);
-                enc.Initialize(pathableResourceManager);
-                if (!_encounterIds.Contains(enc.Id)) {
-                    _encounters.Add(enc);
-                    _encounterIds.Add(enc.Id);
-                }
+                enc.Initialize(timerStream.ResourceManager);
             }
             catch (TimerReadException ex) {
                 enc.Description = ex.Message;
-                _invalidEncounters.Add(enc);
                 //_debug.Text = ex.Message;
                 _errorCaught = true;
-                Logger.Error(enc.Name+" Timer parsing failure: " + ex.Message);
+                Logger.Error(enc.Name + " Timer parsing failure: " + ex.Message);
             }
             catch (Exception ex) {
                 enc?.Dispose();
                 enc = new Encounter {
-                    Name = ((FileStream)fileStream).Name.Split('\\').Last(),
-                    Description = "File Path: "+ ((FileStream)fileStream).Name+"\n\nInvalid JSON format: " + ex.Message
+                    Name = timerStream.FileName.Split('\\').Last(),
+                    Description = "File Path: " + (timerStream.FileName + "\n\nInvalid JSON format: " + ex.Message)
                 };
-                _invalidEncounters.Add(enc);
                 //_debug.Text = ex.Message;
                 _errorCaught = true;
-                Logger.Error("File Path: "+ ((FileStream)fileStream).Name + "\n\nInvalid JSON format: " + ex.Message);
+                Logger.Error("File Path: " + (timerStream.FileName + "\n\nInvalid JSON format: " + ex.Message));
             }
+            finally {
+                enc.IsFromZip = timerStream.IsFromZip;
+                enc.ZipFile = timerStream.ZipFile;
+                enc.TimerFile = timerStream.FileName;
+            }
+
+            return enc;
+        }
+
+        private void AddEncounter(TimerStream timerStream) {
+            Encounter enc = ParseEncounter(timerStream);
+            AddEncounter(enc);
+        }
+
+        private void AddEncounter(Encounter enc) {
+            if (enc.Valid) {
+                _encounters.Add(enc);
+                _encounterIds.Add(enc.Id);
+            }
+            else {
+                _invalidEncounters.Add(enc);
+            }
+        }
+
+        private void UpdateEncounter(Encounter enc) {
+            if (enc.Valid) {
+                _encounters.RemoveWhere(e => e.Equals(enc));
+            }
+            else {
+                _invalidEncounters.RemoveWhere(e => e.Equals(enc));
+            }
+            AddEncounter(enc);
         }
 
         protected override async Task LoadAsync() {
             string timerDirectory = DirectoriesManager.GetFullDirectoryPath("timers");
-            /*DirectoryReader directoryReader = new DirectoryReader(timerDirectory);
-            PathableResourceManager _directResourceManager = new PathableResourceManager(directoryReader);
-            _pathableResourceManagers.Add(_directResourceManager);
 
-            _jsonSettings = new JsonSerializerSettings {
-                NullValueHandling = NullValueHandling.Ignore
-            };
-
-            // Load files directly
-            directoryReader.LoadOnFileType(
-                (Stream fileStream, IDataReader dataReader) => { readJson(fileStream, _directResourceManager); },
-                ".bhtimer");
-
-            // Load files from zip
-            List<string> zipFiles = new List<string>();
-            zipFiles.AddRange(Directory.GetFiles(timerDirectory, "*.zip", SearchOption.AllDirectories));
-
-            foreach (string zipFile in zipFiles) {
-                SortedZipArchiveReader  zipDataReader      = new SortedZipArchiveReader(zipFile);
-                PathableResourceManager zipResourceManager = new PathableResourceManager(zipDataReader);
-                _pathableResourceManagers.Add(zipResourceManager);
-                zipDataReader.LoadOnFileType(
-                    (Stream fileStream, IDataReader dataReader) => { readJson(fileStream, zipResourceManager); },
-                    ".bhtimer");
-            }*/
-
-            TimerLoader loader = new TimerLoader(timerDirectory);
-            loader.LoadFiles(readJson);
+            timerLoader = new TimerLoader(timerDirectory);
+            timerLoader.LoadFiles(AddEncounter);
 
             _encountersLoaded = true;
             _tabPanel = BuildSettingsPanel(GameService.Overlay.BlishHudWindow.ContentRegion);
@@ -897,6 +907,7 @@ namespace Charr.Timers_BlishHUD {
                 entry.Initialize();
 
                 _allTimerDetails.Add(entry);
+                
             }
 
             foreach (Encounter enc in _encounters) {
@@ -910,6 +921,28 @@ namespace Charr.Timers_BlishHUD {
                 entry.PropertyChanged += delegate { ResetActivatedEncounters(); };
 
                 _allTimerDetails.Add(entry);
+
+
+                entry.ReloadClicked += delegate (Object sender, Encounter enc) {
+                    if (enc.IsFromZip) {
+                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
+                            Encounter enc = ParseEncounter(timerStream);
+                            UpdateEncounter(enc);
+                            entry.Encounter?.Dispose();
+                            entry.Encounter = enc;
+                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
+                        }, enc.ZipFile, enc.TimerFile);
+                    }
+                    else {
+                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
+                            Encounter enc = ParseEncounter(timerStream);
+                            UpdateEncounter(enc);
+                            entry.Encounter?.Dispose();
+                            entry.Encounter = enc;
+                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
+                        }, enc.TimerFile);
+                    }
+                };
             }
 
             // 3. Categories
@@ -1008,7 +1041,9 @@ namespace Charr.Timers_BlishHUD {
 
         protected override void Update(GameTime gameTime) {
             if (_encountersLoaded) {
-                _activeEncounters.ForEach(enc => enc.Update(gameTime));
+                foreach (var enc in _activeEncounters) {
+                    enc.Update(gameTime);
+                }
             }
 
             if (_debugText.Visible) {
@@ -1059,10 +1094,14 @@ namespace Charr.Timers_BlishHUD {
             _activeDirectionIds.Clear();
             _activeMarkerIds.Clear();
             _encounterIds.Clear();
-            _encounters.ForEach(enc => enc.Dispose());
+            foreach (var enc in _encounters) {
+                enc.Dispose();
+            }
             _encounters.Clear();
             _activeEncounters.Clear();
-            _invalidEncounters.ForEach(enc => enc.Dispose());
+            foreach (var enc in _invalidEncounters) {
+                enc.Dispose();
+            }
             _invalidEncounters.Clear();
 
             // Cleanup readers and resource managers
