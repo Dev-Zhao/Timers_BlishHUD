@@ -80,11 +80,11 @@ namespace Charr.Timers_BlishHUD.Models {
 
         public enum EncounterStates {
             Error,
+            Suspended,
             Ready,
             WaitingToRun,
             Running,
-            WaitingNextPhase,
-            Suspended
+            WaitingNextPhase
         }
 
         public EncounterStates State = EncounterStates.Error;
@@ -137,14 +137,16 @@ namespace Charr.Timers_BlishHUD.Models {
         }
 
         public void Activate() {
-            if (!Enabled || State != EncounterStates.Ready) return;
+            if (!Enabled || State > EncounterStates.Ready) return;
 
-            ResetTrigger.Enable();
+            State = EncounterStates.Ready;
 
-            Phases.ForEach(ph => ph.Activate());
-            Phases[0].WaitForStart();
+            if (Map == GameService.Gw2Mumble.CurrentMap.Id) {
+                Phases.ForEach(ph => ph.Activate());
+                Phases[0].WaitForStart();
 
-            State = EncounterStates.WaitingToRun;
+                State = EncounterStates.WaitingToRun;
+            }
 
             Debug.WriteLine(Name + " activated!");
         }
@@ -215,7 +217,8 @@ namespace Charr.Timers_BlishHUD.Models {
                 Debug.WriteLine("Stop");
                 Stop();
                 if (Enabled && Map == GameService.Gw2Mumble.CurrentMap.Id) {
-                    State = EncounterStates.Ready;
+                    Phases[0].WaitForStart();
+                    State = EncounterStates.WaitingToRun;
                 }
             } 
             else if (State == EncounterStates.WaitingNextPhase) {
