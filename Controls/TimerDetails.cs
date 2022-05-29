@@ -22,12 +22,11 @@ namespace Charr.Timers_BlishHUD.Controls {
         public new bool Enabled {
             get => _enabled;
             set {
-                if (SetProperty(ref _enabled, value)) {
-                    if (_enableSetting != null) _enableSetting.Value = _enabled;
-                    if (_encounter != null) _encounter.Enabled = _enabled;
-                    if (_toggleButton != null) _toggleButton.Checked = _enabled;
-                    ToggleState = _enabled;
-                }
+                _enabled = value;
+                if (_enableSetting != null) _enableSetting.Value = _enabled;
+                if (_encounter != null) _encounter.Enabled = _enabled;
+                if (_toggleButton != null) _toggleButton.Checked = _enabled;
+                ToggleState = _enabled;
             }
         }
 
@@ -39,7 +38,9 @@ namespace Charr.Timers_BlishHUD.Controls {
                 bool encounterValid = _encounter.State != Encounter.EncounterStates.Error;
 
                 _enableSettingName = "TimerEnable:" + _encounter.Id;
-                _enableSetting = TimersModule.ModuleInstance._timerSettingCollection.DefineSetting(_enableSettingName, _encounter.Enabled);
+                if (!TimersModule.ModuleInstance._timerSettingCollection.TryGetSetting(_enableSettingName, out _enableSetting)) {
+                    _enableSetting = TimersModule.ModuleInstance._timerSettingCollection.DefineSetting(_enableSettingName, _encounter.Enabled);
+                }
                 Enabled = encounterValid && _enableSetting.Value;
 
                 Text = _encounter.Name + (encounterValid ? "" : "\nLoad Error - Check Description for Details\n");
@@ -51,7 +52,6 @@ namespace Charr.Timers_BlishHUD.Controls {
                 _descButton.Visible = !string.IsNullOrEmpty(_encounter.Description);
                 _descButton.BasicTooltipText = "---Timer Description---\n" + _encounter.Description;
 
-                _toggleButton.Checked = _encounter.Enabled;
                 _toggleButton.Enabled = encounterValid;
                 _toggleButton.Icon = encounterValid ? TimersModule.ModuleInstance.Resources.TextureEye : TimersModule.ModuleInstance.Resources.TextureX;
 
