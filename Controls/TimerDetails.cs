@@ -41,7 +41,7 @@ namespace Charr.Timers_BlishHUD.Controls {
                 _enableSetting = TimersModule.ModuleInstance._timerSettingCollection.DefineSetting(_enableSettingName, _encounter.Enabled);
                 Enabled = _encounter.Valid && _enableSetting.Value;
 
-                Text = _encounter.Name + (_encounter.Valid ? "" : "\nLoading Error\nCheck Description for Details\n");
+                Text = _encounter.Name + (_encounter.Valid ? "" : "\nLoad Error - Check Description for Details\n");
                 Icon =  _encounter.Icon ?? ContentService.Textures.TransparentPixel;
 
                 _authButton.Visible = !string.IsNullOrEmpty(_encounter.Author);

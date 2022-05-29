@@ -906,8 +906,32 @@ namespace Charr.Timers_BlishHUD {
                 };
                 entry.Initialize();
 
+                entry.PropertyChanged += delegate { ResetActivatedEncounters(); };
+
                 _allTimerDetails.Add(entry);
-                
+
+
+                entry.ReloadClicked += delegate (Object sender, Encounter enc) {
+                    if (enc.IsFromZip) {
+                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
+                            Encounter enc = ParseEncounter(timerStream);
+                            UpdateEncounter(enc);
+                            entry.Encounter?.Dispose();
+                            entry.Encounter = enc;
+                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
+                        }, enc.ZipFile, enc.TimerFile);
+                    }
+                    else {
+                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
+                            Encounter enc = ParseEncounter(timerStream);
+                            UpdateEncounter(enc);
+                            entry.Encounter?.Dispose();
+                            entry.Encounter = enc;
+                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
+                        }, enc.TimerFile);
+                    }
+                };
+
             }
 
             foreach (Encounter enc in _encounters) {
