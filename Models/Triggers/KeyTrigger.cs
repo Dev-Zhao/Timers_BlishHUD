@@ -23,8 +23,6 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
         [JsonProperty("keyBind")] public int KeyBind { get; set; } = 0;
 
         // Private members
-        private Keys _key;
-        private ModifierKeys _keyModifier;
         private EventHandler<KeyboardEventArgs> _keyPressedHandler;
         private bool _keysPressed = false;
 
@@ -35,7 +33,6 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
                 return "requireCombat and requireOutOfCombat cannot both be set to true";
             if (EntryRequired && DepartureRequired)
                 return "requireEntry and requireDeparture cannot both be set to true";
-
             if (EntryRequired || DepartureRequired)
             {
                 if (Position?.Count != 3)
@@ -43,14 +40,12 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
                 if (Antipode?.Count != 3 && Radius <= 0)
                     return "invalid radius/size";
             }
-            if (!CombatRequired && !OutOfCombatRequired && !EntryRequired && !DepartureRequired && TimersModule.ModuleInstance._keyBindSettings[KeyBind].Value.PrimaryKey == 0)
-                return "No possible trigger conditions.";
 
             //if (Key != null) {
             //    try {
             //        // Convert key strings to appropriate Enum
             //        _key = (Keys)Enum.Parse(typeof(Keys), Key, true);
-            //        _keyModifier = (KeyModifier == null) ? ModifierKeys.None : (ModifierKeys)Enum.Parse(typeof(ModifierKeys), KeyModifier, true);
+            //        _keyModifiers = (KeyModifier == null) ? ModifierKeys.None : (ModifierKeys)Enum.Parse(typeof(ModifierKeys), KeyModifier, true);
             //    }
             //    catch (Exception e) {
             //        return e.Message;
@@ -99,7 +94,7 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
             if (!_enabled)
                 return;
             // Wrong keys have been pressed
-            if (args.Key != TimersModule.ModuleInstance._keyBindSettings[KeyBind].Value.PrimaryKey || (GameService.Input.Keyboard.ActiveModifiers & TimersModule.ModuleInstance._keyBindSettings[KeyBind].Value.ModifierKeys) != TimersModule.ModuleInstance._keyBindSettings[KeyBind].Value.ModifierKeys)
+            if (args.Key != TimersModule.ModuleInstance._keyBindSettings[KeyBind].Value.PrimaryKey || GameService.Input.Keyboard.ActiveModifiers != TimersModule.ModuleInstance._keyBindSettings[KeyBind].Value.ModifierKeys)
                 return;
             // Player needs to be in combat but they are not
             if (!TimersModule.ModuleInstance._debugModeSetting.Value && CombatRequired && !GameService.Gw2Mumble.PlayerCharacter.IsInCombat)

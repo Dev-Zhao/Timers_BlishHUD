@@ -22,6 +22,9 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
                 if (Antipode?.Count != 3 && Radius <= 0)
                     return "invalid radius/size";
             }
+            else {
+                return "At least one of requireEntry and requireDeparture must be set to true";
+            }
             if (!CombatRequired && !OutOfCombatRequired && !EntryRequired && !DepartureRequired)
                 return "No possible trigger conditions.";
 
@@ -44,13 +47,15 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
         {
             if (!_enabled)
                 return false;
-            if (!TimersModule.ModuleInstance._debugModeSetting.Value && CombatRequired && !GameService.Gw2Mumble.PlayerCharacter.IsInCombat)
+
+            bool debugMode = TimersModule.ModuleInstance._debugModeSetting.Value;
+            if (!debugMode && CombatRequired && !GameService.Gw2Mumble.PlayerCharacter.IsInCombat)
                 return false;
-            if (OutOfCombatRequired && GameService.Gw2Mumble.PlayerCharacter.IsInCombat)
+            if (!debugMode && OutOfCombatRequired && GameService.Gw2Mumble.PlayerCharacter.IsInCombat)
                 return false;
 
             // If EntryRequired or DepartureRequired is true, then the player must enter/leave the specified area to trigger
-            if (EntryRequired || DepartureRequired)
+            if (debugMode || EntryRequired || DepartureRequired)
             {
                 float x = GameService.Gw2Mumble.PlayerCharacter.Position.X;
                 float y = GameService.Gw2Mumble.PlayerCharacter.Position.Y;
