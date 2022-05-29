@@ -72,7 +72,7 @@
     <Compile Include="Controls\Effects\SimpleScrollingHighlightEffect.cs" />
     <Compile Include="Controls\Alerts\IAlertPanel.cs" />
     <Compile Include="Controls\TimerDetails.cs" />
-    <Compile Include="IO\TimerLoader.cs" />
+    <Compile Include="Content\TimerLoader.cs" />
     <Compile Include="Pathing\Entities\Billboard.cs" />
     <Compile Include="Pathing\Entities\Entity.cs" />
     <Compile Include="Pathing\Entities\EntityBillboard.cs" />
@@ -81,19 +81,19 @@
     <Compile Include="Pathing\Entities\MarkerPathable.cs" />
     <Compile Include="Pathing\Entities\TrailEffect.cs" />
     <Compile Include="Resources.cs" />
-    <Compile Include="Models\Alert.cs" />
-    <Compile Include="Models\Direction.cs" />
-    <Compile Include="Models\Encounter.cs" />
-    <Compile Include="Models\Marker.cs" />
-    <Compile Include="Models\Phase.cs" />
-    <Compile Include="Models\Triggers\Trigger.cs" />
-    <Compile Include="Models\Triggers\KeyTrigger.cs" />
-    <Compile Include="Models\Triggers\LocationTrigger.cs" />
-    <Compile Include="Models\Triggers\TriggerConverter.cs" />
+    <Compile Include="State\Alert.cs" />
+    <Compile Include="State\Direction.cs" />
+    <Compile Include="State\Encounter.cs" />
+    <Compile Include="State\Marker.cs" />
+    <Compile Include="State\Phase.cs" />
+    <Compile Include="State\Triggers\Trigger.cs" />
+    <Compile Include="State\Triggers\KeyTrigger.cs" />
+    <Compile Include="State\Triggers\LocationTrigger.cs" />
+    <Compile Include="State\Triggers\TriggerConverter.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="IO\PathableResourceManager.cs" />
+    <Compile Include="Content\PathableResourceManager.cs" />
     <Compile Include="Pathing\Entities\TrailPathable.cs" />
-    <Compile Include="IO\SortedZipArchiveReader.cs" />
+    <Compile Include="Content\SortedZipArchiveReader.cs" />
     <Compile Include="TimersModule.cs" />
   </ItemGroup>
   <ItemGroup>

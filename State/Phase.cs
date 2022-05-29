@@ -66,8 +66,6 @@ namespace Charr.Timers_BlishHUD.Models {
         private bool _showAlerts = true;
         private bool _showDirections = true;
         private bool _showMarkers = true;
-        private bool _tempStartCondition = false;
-        private bool _tempFinishCondition = false;
 
         public string Initialize(PathableResourceManager pathableResourceManager) {
             if (StartTrigger == null) return "phase missing start trigger";
@@ -182,12 +180,6 @@ namespace Charr.Timers_BlishHUD.Models {
 
         public void WaitForStart() {
             StartTrigger?.Enable();
-            if (TimersModule.ModuleInstance._debugModeSetting.Value) {
-                if (!StartTrigger.EntryRequired && !StartTrigger.DepartureRequired) {
-                    StartTrigger.EntryRequired = true;
-                    _tempStartCondition = true;
-                }
-            }
             Debug.WriteLine(Name + " phase waiting");
         }
 
@@ -197,19 +189,9 @@ namespace Charr.Timers_BlishHUD.Models {
 
             StartTrigger?.Reset();
             StartTrigger?.Disable();
-            if (_tempStartCondition) {
-                StartTrigger.EntryRequired = false;
-                StartTrigger.DepartureRequired = false;
-                _tempStartCondition = false;
-            }
 
             FinishTrigger?.Enable();
-            if (TimersModule.ModuleInstance._debugModeSetting.Value) {
-                if (FinishTrigger != null && !FinishTrigger.EntryRequired && !FinishTrigger.DepartureRequired) {
-                    FinishTrigger.DepartureRequired = true;
-                    _tempFinishCondition = true;
-                }
-            }
+
             Active = true;
         }
 
@@ -218,19 +200,9 @@ namespace Charr.Timers_BlishHUD.Models {
 
             StartTrigger?.Reset();
             StartTrigger?.Disable();
-            if (_tempStartCondition) {
-                StartTrigger.EntryRequired = false;
-                StartTrigger.DepartureRequired = false;
-                _tempStartCondition = false;
-            }
 
             FinishTrigger?.Reset();
             FinishTrigger?.Disable();
-            if (_tempFinishCondition) {
-                FinishTrigger.EntryRequired = false;
-                FinishTrigger.DepartureRequired = false;
-                _tempFinishCondition = false;
-            }
 
             Alerts?.ForEach(al => {
                 if (!string.IsNullOrEmpty(al.UID)) {

@@ -94,7 +94,6 @@ namespace Charr.Timers_BlishHUD.Models {
         private bool _showAlerts = true;
         private bool _showMarkers = true;
         private bool _showDirections = true;
-        private bool _tempResetCondition = false;
         private int _currentPhase = 0;
         private DateTime _startTime;
         private DateTime _lastUpdate;
@@ -142,12 +141,6 @@ namespace Charr.Timers_BlishHUD.Models {
             if (!Enabled || _activated) return;
 
             ResetTrigger.Enable();
-            if (TimersModule.ModuleInstance._debugModeSetting.Value) {
-                if (!ResetTrigger.DepartureRequired && !ResetTrigger.DepartureRequired) {
-                    ResetTrigger.DepartureRequired = true;
-                    _tempResetCondition = true;
-                }
-            }
 
             Phases.ForEach(ph => ph.Activate());
             Phases[0].WaitForStart();
@@ -170,20 +163,28 @@ namespace Charr.Timers_BlishHUD.Models {
                 return false;
 
             Phase first = Phases[0];
+            ResetTrigger.Enable();
             return first.StartTrigger.Triggered();
         }
 
         private bool ShouldStop() {
             if (!Active) return false;
 
-            if (Map != GameService.Gw2Mumble.CurrentMap.Id)
+            if (Map != GameService.Gw2Mumble.CurrentMap.Id) {
+                Debug.WriteLine("bug3");
                 return true;
+            }
+
 
             if (_currentPhase == (Phases.Count - 1) &&
                 Phases[_currentPhase].FinishTrigger != null &&
-                Phases[_currentPhase].FinishTrigger.Triggered())
+                Phases[_currentPhase].FinishTrigger.Triggered()) {
+                Debug.WriteLine("bug2");
                 return true;
+            }
 
+
+            Debug.WriteLine("stop: " + ResetTrigger.Triggered());
             return ResetTrigger.Triggered();
         }
 
@@ -198,6 +199,7 @@ namespace Charr.Timers_BlishHUD.Models {
         }
 
         private void Stop() {
+            Debug.WriteLine("active " + Active);
             if (!Active) return;
 
             Phases.ForEach(ph => ph.Stop());
@@ -206,16 +208,6 @@ namespace Charr.Timers_BlishHUD.Models {
             _awaitingNextPhase = false;
             ResetTrigger.Disable();
             ResetTrigger.Reset();
-            if (_tempResetCondition) {
-                ResetTrigger.EntryRequired = false;
-                ResetTrigger.DepartureRequired = false;
-            }
-            if (TimersModule.ModuleInstance._debugModeSetting.Value) {
-                if (!ResetTrigger.DepartureRequired && !ResetTrigger.DepartureRequired) {
-                    ResetTrigger.DepartureRequired = true;
-                    _tempResetCondition = true;
-                }
-            }
         }
 
         public void Update(GameTime gameTime) {
