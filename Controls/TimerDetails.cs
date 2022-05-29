@@ -36,12 +36,13 @@ namespace Charr.Timers_BlishHUD.Controls {
             get => _encounter;
             set {
                 _encounter = value;
+                bool encounterValid = _encounter.State != Encounter.EncounterStates.Error;
 
                 _enableSettingName = "TimerEnable:" + _encounter.Id;
                 _enableSetting = TimersModule.ModuleInstance._timerSettingCollection.DefineSetting(_enableSettingName, _encounter.Enabled);
-                Enabled = _encounter.Valid && _enableSetting.Value;
+                Enabled = encounterValid && _enableSetting.Value;
 
-                Text = _encounter.Name + (_encounter.Valid ? "" : "\nLoad Error - Check Description for Details\n");
+                Text = _encounter.Name + (encounterValid ? "" : "\nLoad Error - Check Description for Details\n");
                 Icon =  _encounter.Icon ?? ContentService.Textures.TransparentPixel;
 
                 _authButton.Visible = !string.IsNullOrEmpty(_encounter.Author);
@@ -51,10 +52,10 @@ namespace Charr.Timers_BlishHUD.Controls {
                 _descButton.BasicTooltipText = "---Timer Description---\n" + _encounter.Description;
 
                 _toggleButton.Checked = _encounter.Enabled;
-                _toggleButton.Enabled = _encounter.Valid;
-                _toggleButton.Icon = _encounter.Valid ? TimersModule.ModuleInstance.Resources.TextureEye : TimersModule.ModuleInstance.Resources.TextureX;
+                _toggleButton.Enabled = encounterValid;
+                _toggleButton.Icon = encounterValid ? TimersModule.ModuleInstance.Resources.TextureEye : TimersModule.ModuleInstance.Resources.TextureX;
 
-                if (_encounter.Valid) {
+                if (encounterValid) {
                     _toggleButton.Click += delegate {
                         Enabled = _toggleButton.Checked;
                         TimerToggled?.Invoke(this, this.Encounter);

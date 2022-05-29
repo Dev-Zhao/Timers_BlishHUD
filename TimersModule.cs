@@ -282,12 +282,11 @@ namespace Charr.Timers_BlishHUD {
             foreach (Encounter enc in _encounters) {
                 if (enc.Map == GameService.Gw2Mumble.CurrentMap.Id &&
                     enc.Enabled) {
-                    if (!enc.Activated)
-                        enc.Activated = true;
+                    enc.Activate();
                     _activeEncounters.Add(enc);
                 }
                 else {
-                    enc.Activated = false;
+                    enc.Deactivate();
                 }
             }
             /*
@@ -339,7 +338,7 @@ namespace Charr.Timers_BlishHUD {
         }
 
         private void AddEncounter(Encounter enc) {
-            if (enc.Valid) {
+            if (enc.State != Encounter.EncounterStates.Error) {
                 _encounters.Add(enc);
                 _encounterIds.Add(enc.Id);
             }
@@ -349,7 +348,7 @@ namespace Charr.Timers_BlishHUD {
         }
 
         private void UpdateEncounter(Encounter enc) {
-            if (enc.Valid) {
+            if (enc.State != Encounter.EncounterStates.Error) {
                 _encounters.RemoveWhere(e => e.Equals(enc));
             }
             else {
@@ -999,12 +998,12 @@ namespace Charr.Timers_BlishHUD {
                     (db.Encounter.Map == GameService.Gw2Mumble.CurrentMap.Id)).ToList();
             };
 
-            if (_encounters.Any(e => !e.Valid)) {
+            if (_encounters.Any(e => e.State == Encounter.EncounterStates.Error)) {
                 MenuItem invalidTimers = timerCategories.AddMenuItem("Invalid Timers");
 
                 invalidTimers.Click += delegate {
-                    timerPanel.FilterChildren<TimerDetails>(db => !db.Encounter.Valid);
-                    _displayedTimerDetails = _allTimerDetails.Where(db => !db.Encounter.Valid).ToList();
+                    timerPanel.FilterChildren<TimerDetails>(db => db.Encounter.State == Encounter.EncounterStates.Error);
+                    _displayedTimerDetails = _allTimerDetails.Where(db => db.Encounter.State == Encounter.EncounterStates.Error).ToList();
                 };
             }
 
@@ -1033,7 +1032,7 @@ namespace Charr.Timers_BlishHUD {
 
                 _displayedTimerDetails.ForEach(db => {
                     // Ignore Encounters that have errors
-                    if (db.Encounter.Valid) {
+                    if (db.Encounter.State != Encounter.EncounterStates.Error) {
                         db.Enabled = true;
                     }
                 });
@@ -1042,7 +1041,7 @@ namespace Charr.Timers_BlishHUD {
             disableAllButton.Click += delegate {
                 _displayedTimerDetails.ForEach(db => {
                     // Ignore Encounters that have errors
-                    if (db.Encounter.Valid) {
+                    if (db.Encounter.State != Encounter.EncounterStates.Error) {
                         db.Enabled = false;
                     }
                 });

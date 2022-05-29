@@ -39,16 +39,6 @@ namespace Charr.Timers_BlishHUD.Models {
         public Trigger ResetTrigger { get; set; }
 
         // Non-serialized
-        public bool Activated {
-            get { return _activated; }
-            set {
-                if (value)
-                    Activate();
-                else
-                    Deactivate();
-            }
-        }
-
         public bool ShowAlerts {
             get { return _showAlerts; }
             set {
@@ -71,8 +61,6 @@ namespace Charr.Timers_BlishHUD.Models {
             }
         }
 
-        public bool Active { get; private set; } = false;
-        public bool Valid { get; private set; } = false;
         public AsyncTexture2D Icon { get; set; }
 
         public bool IsFromZip { get; set; } = false;
@@ -89,14 +77,25 @@ namespace Charr.Timers_BlishHUD.Models {
         public string TimerFile { get; set; }
 
         // Private members
-        private bool _activated = false;
-        private bool _awaitingNextPhase = false;
-        private bool _showAlerts = true;
-        private bool _showMarkers = true;
-        private bool _showDirections = true;
+
+        public enum EncounterStates {
+            Error,
+            Ready,
+            WaitingToRun,
+            Running,
+            WaitingNextPhase,
+            Suspended
+        }
+
+        public EncounterStates State = EncounterStates.Error;
         private int _currentPhase = 0;
         private DateTime _startTime;
         private DateTime _lastUpdate;
+
+        private bool _showAlerts = true;
+        private bool _showMarkers = true;
+        private bool _showDirections = true;
+
         private readonly int TICKRATE = 100;
 
         public override bool Equals(Object obj) {
@@ -134,117 +133,112 @@ namespace Charr.Timers_BlishHUD.Models {
                     throw new TimerReadException(Id + ": " + message);
             }
 
-            Valid = true;
+            State = EncounterStates.Ready;
         }
 
-        private void Activate() {
-            if (!Enabled || _activated) return;
+        public void Activate() {
+            if (!Enabled || State != EncounterStates.Ready) return;
 
             ResetTrigger.Enable();
 
             Phases.ForEach(ph => ph.Activate());
             Phases[0].WaitForStart();
-            _activated = true;
+
+            State = EncounterStates.WaitingToRun;
+
             Debug.WriteLine(Name + " activated!");
         }
 
-        private void Deactivate() {
-            if (!_activated) return;
+        public void Deactivate() {
+            if (State == EncounterStates.Suspended) return;
 
             Stop();
             Phases.ForEach(ph => ph.Deactivate());
-            _activated = false;
+            State = EncounterStates.Suspended;
         }
 
-        private bool ShouldStart() {
-            if (Active || !Enabled || !Activated) return false;
+        private bool ShouldRun() {
+            if (!Enabled || State != EncounterStates.WaitingToRun) return false;
 
             if (Map != GameService.Gw2Mumble.CurrentMap.Id)
                 return false;
 
             Phase first = Phases[0];
-            ResetTrigger.Enable();
             return first.StartTrigger.Triggered();
         }
 
         private bool ShouldStop() {
-            if (!Active) return false;
+            if (State != EncounterStates.Running && State != EncounterStates.WaitingNextPhase) return false;
 
             if (Map != GameService.Gw2Mumble.CurrentMap.Id) {
-                Debug.WriteLine("bug3");
                 return true;
             }
-
 
             if (_currentPhase == (Phases.Count - 1) &&
                 Phases[_currentPhase].FinishTrigger != null &&
                 Phases[_currentPhase].FinishTrigger.Triggered()) {
-                Debug.WriteLine("bug2");
                 return true;
             }
 
-
-            Debug.WriteLine("stop: " + ResetTrigger.Triggered());
             return ResetTrigger.Triggered();
         }
 
-        private void Start() {
-            if (Active || !Enabled || !Activated) return;
+        private void Run() {
+            if (!Enabled || State != EncounterStates.WaitingToRun) return;
+
+            ResetTrigger.Enable();
 
             _startTime = DateTime.Now;
-            Active = true;
             Phases[_currentPhase].Start();
             Phases[_currentPhase].Update(0.0f);
             _lastUpdate = DateTime.Now;
+
+            State = EncounterStates.Running;
         }
 
         private void Stop() {
-            Debug.WriteLine("active " + Active);
-            if (!Active) return;
+            if (State == EncounterStates.Suspended) return;
 
             Phases.ForEach(ph => ph.Stop());
-            Active = false;
             _currentPhase = 0;
-            _awaitingNextPhase = false;
             ResetTrigger.Disable();
             ResetTrigger.Reset();
+            State = EncounterStates.Suspended;
         }
 
         public void Update(GameTime gameTime) {
-            if (ShouldStart()) {
-                Start();
+            if (ShouldRun()) {
+                Run();
                 Debug.WriteLine("Start");
             }
             else if (ShouldStop()) {
                 Debug.WriteLine("Stop");
                 Stop();
                 if (Enabled && Map == GameService.Gw2Mumble.CurrentMap.Id) {
-                    Phases[0].WaitForStart();
-                    ResetTrigger.Enable();
+                    State = EncounterStates.Ready;
                 }
-            }
-            else if (_awaitingNextPhase) {
+            } 
+            else if (State == EncounterStates.WaitingNextPhase) {
                 // Waiting period between phases.
                 if (_currentPhase + 1 < Phases.Count) {
                     if (Phases[_currentPhase + 1].StartTrigger != null &&
                         Phases[_currentPhase + 1].StartTrigger.Triggered()) {
                         _currentPhase++;
-                        _awaitingNextPhase = false;
-                        Start();
+                        State = EncounterStates.Running;
                     }
                 }
             }
             else if (Phases[_currentPhase].FinishTrigger != null &&
                      Phases[_currentPhase].FinishTrigger.Triggered()) {
                 // Transition to waiting period between phases.
-                _awaitingNextPhase = true;
                 Phases[_currentPhase].Stop();
-                Active = false;
                 if (_currentPhase + 1 < Phases.Count) {
                     Phases[_currentPhase + 1].WaitForStart();
+                    State = EncounterStates.WaitingNextPhase;
                 }
             }
-            else if (Active && (DateTime.Now - _lastUpdate).TotalSeconds >= TimersModule.ModuleInstance.Resources.TICKINTERVAL) {
+
+            if (State == EncounterStates.Running && (DateTime.Now - _lastUpdate).TotalSeconds >= TimersModule.ModuleInstance.Resources.TICKINTERVAL) {
                 // Phase updates.
                 float elapsedTime = (float) (DateTime.Now - _startTime).TotalSeconds;
                 _lastUpdate = DateTime.Now;
