@@ -61,7 +61,7 @@ namespace Charr.Timers_BlishHUD.Models {
             }
         }
 
-        public AsyncTexture2D Icon { get; set; }
+        public AsyncTexture2D Icon { get; set; } = ContentService.Textures.TransparentPixel;
 
         public bool IsFromZip { get; set; } = false;
         private string _zipFile;
@@ -155,7 +155,7 @@ namespace Charr.Timers_BlishHUD.Models {
             if (State == EncounterStates.Suspended) return;
 
             Stop();
-            Phases.ForEach(ph => ph.Deactivate());
+            Phases?.ForEach(ph => ph.Deactivate());
             State = EncounterStates.Suspended;
         }
 
@@ -201,10 +201,10 @@ namespace Charr.Timers_BlishHUD.Models {
         private void Stop() {
             if (State == EncounterStates.Suspended) return;
 
-            Phases.ForEach(ph => ph.Stop());
+            Phases?.ForEach(ph => ph.Stop());
             _currentPhase = 0;
-            ResetTrigger.Disable();
-            ResetTrigger.Reset();
+            ResetTrigger?.Disable();
+            ResetTrigger?.Reset();
             State = EncounterStates.Suspended;
         }
 

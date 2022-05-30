@@ -24,21 +24,27 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
             Type objectType, object existingValue,
             JsonSerializer serializer)
         {
-            var jsonObject = JObject.Load(reader);
-            var trigger = default(Trigger);
-            var type = jsonObject.Value<String>("type") ?? "location";
-            switch (type)
-            {
-                case "key":
-                    trigger = new KeyTrigger();
-                    break;
-                case "location":
-                default:
-                    trigger = new LocationTrigger();
-                    break;
+            try {
+                var jsonObject = JObject.Load(reader);
+
+                Trigger trigger;
+                var type = jsonObject.Value<String>("type") ?? "location";
+                switch (type) {
+                    case "key":
+                        trigger = new KeyTrigger();
+                        break;
+                    case "location":
+                    default:
+                        trigger = new LocationTrigger();
+                        break;
+                }
+                serializer.Populate(jsonObject.CreateReader(), trigger);
+
+                return trigger;
             }
-            serializer.Populate(jsonObject.CreateReader(), trigger);
-            return trigger;
+            catch (Newtonsoft.Json.JsonReaderException readException) {
+                return null;
+            }
         }
     }
 }

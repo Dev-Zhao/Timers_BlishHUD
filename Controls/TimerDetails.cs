@@ -44,7 +44,7 @@ namespace Charr.Timers_BlishHUD.Controls {
                 Enabled = encounterValid && _enableSetting.Value;
 
                 Text = _encounter.Name + (encounterValid ? "" : "\nLoad Error - Check Description for Details\n");
-                Icon =  _encounter.Icon ?? ContentService.Textures.TransparentPixel;
+                Icon = _encounter.Icon;
 
                 _authButton.Visible = !string.IsNullOrEmpty(_encounter.Author);
                 _authButton.BasicTooltipText = "Timer Author: " + _encounter.Author;
