@@ -42,7 +42,7 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
 
                 return trigger;
             }
-            catch (Newtonsoft.Json.JsonReaderException readException) {
+            catch (JsonReaderException readException) {
                 return null;
             }
         }

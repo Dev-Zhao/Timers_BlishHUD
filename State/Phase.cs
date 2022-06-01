@@ -193,6 +193,7 @@ namespace Charr.Timers_BlishHUD.Models {
             FinishTrigger?.Enable();
 
             Active = true;
+            Debug.WriteLine(Name + " phase starting");
         }
 
         public void Stop() {

@@ -248,9 +248,12 @@ namespace Charr.Timers_BlishHUD.Controls {
             spriteBatch.DrawStringOnCtrl(this, _Text, TimersModule.ModuleInstance.Resources.Font, _alertTextDestination, this.TextColor, true, true);
         }
 
-        public new void Dispose() {
+        public void Dispose() {
             _shouldDispose = true;
             _animFade?.Resume();
+            _animFade?.OnComplete(delegate {
+               base.Dispose();
+            });
         }
     }
 }

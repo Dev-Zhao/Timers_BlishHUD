@@ -96,6 +96,7 @@ namespace Charr.Timers_BlishHUD.Models {
             if (!Activated) {
                 return;
             }
+
             Dispose();
         }
 
@@ -127,7 +128,6 @@ namespace Charr.Timers_BlishHUD.Models {
             
             ((Control)panel).Parent = TimersModule.ModuleInstance._alertContainer;
             
-
             TimersModule.ModuleInstance._alertContainer.UpdateDisplay();
             return panel;
         }
@@ -188,6 +188,7 @@ namespace Charr.Timers_BlishHUD.Models {
         public void Dispose() {
             if (activePanels != null) {
                 foreach (KeyValuePair<float, IAlertPanel> entry in activePanels) {
+                    Debug.WriteLine(entry.Value.Text + " dispose");
                     entry.Value.Dispose();
                 }
                 activePanels.Clear();
