@@ -27,7 +27,7 @@ namespace Charr.Timers_BlishHUD.Models {
         [JsonProperty("alerts")] public List<Alert> Alerts { get; set; }
         [JsonProperty("directions")] public List<Direction> Directions { get; set; } = new List<Direction>();
         [JsonProperty("markers")] public List<Marker> Markers { get; set; } = new List<Marker>();
-        [JsonProperty("voices")] public List<Voice> Voices { get; set; } = new List<Voice>();
+        [JsonProperty("sounds")] public List<Sound> Sounds { get; set; } = new List<Sound>();
 
         // Non-serialized properties
         public bool Activated {
@@ -105,8 +105,8 @@ namespace Charr.Timers_BlishHUD.Models {
                 }
             }
 
-            if (Voices != null) {
-                foreach (Voice voice in Voices) {
+            if (Sounds != null) {
+                foreach (Sound voice in Sounds) {
                     message = voice.Initialize();
                     if (message != null) return message;
                 }
@@ -151,7 +151,7 @@ namespace Charr.Timers_BlishHUD.Models {
                 }
             });
 
-            Voices.ForEach(voice => voice.Activate());
+            Sounds.ForEach(voice => voice.Activate());
             _activated = true;
         }
 
@@ -186,7 +186,7 @@ namespace Charr.Timers_BlishHUD.Models {
                 }
                 mark.Deactivate();
             });
-            Voices?.ForEach(voice => voice.Deactivate());
+            Sounds?.ForEach(voice => voice.Deactivate());
             _activated = false;
         }
 
@@ -247,7 +247,7 @@ namespace Charr.Timers_BlishHUD.Models {
                 mark.Stop();
             });
 
-            Voices?.ForEach(voice => voice.Stop());
+            Sounds?.ForEach(voice => voice.Stop());
             Active = false;
         }
 
@@ -255,7 +255,7 @@ namespace Charr.Timers_BlishHUD.Models {
             Alerts?.ForEach(al => al.Update(elapsedTime));
             Directions?.ForEach(dir => dir.Update(elapsedTime));
             Markers?.ForEach(mark => mark.Update(elapsedTime));
-            Voices?.ForEach(voice => voice.Update(elapsedTime));
+            Sounds?.ForEach(voice => voice.Update(elapsedTime));
         }
 
         public void Dispose() {
@@ -264,7 +264,7 @@ namespace Charr.Timers_BlishHUD.Models {
             Directions?.Clear();
             Markers?.Clear();
             Alerts?.Clear();
-            Voices?.Clear();
+            Sounds?.Clear();
         }
     }
 }

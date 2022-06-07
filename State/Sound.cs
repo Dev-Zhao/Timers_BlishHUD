@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Charr.Timers_BlishHUD.State
 {
-    public class Voice
+    public class Sound
     {
         // Serialized Properties
         [JsonProperty("uid")] public string UID { get; set; }
@@ -36,7 +36,7 @@ namespace Charr.Timers_BlishHUD.State
         public string Initialize() {
             if (Text.IsNullOrEmpty())
                 return Name + " invalid text property";
-            if (Timestamps == null || Timestamps.Count == 0)
+            if (Timestamps.IsNullOrEmpty())
                 return Name + " invalid timestamps property";
 
             _synthesizer = new SpeechSynthesizer();
