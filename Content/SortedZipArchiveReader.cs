@@ -1,15 +1,16 @@
-﻿using System;
+﻿using Blish_HUD.Content;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Blish_HUD.Content;
 
-namespace Charr.Timers_BlishHUD {
-    internal class SortedZipArchiveReader : IDataReader {
+namespace Charr.Timers_BlishHUD
+{
+    internal class SortedZipArchiveReader : IDataReader
+    {
 
         private readonly ZipArchive _archive;
 

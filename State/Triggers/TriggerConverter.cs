@@ -10,20 +10,17 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
     {
         public override bool CanWrite => false;
         public override bool CanRead => true;
-        public override bool CanConvert(Type objectType)
-        {
+        public override bool CanConvert(Type objectType) {
             return objectType == typeof(Trigger);
         }
         public override void WriteJson(JsonWriter writer,
-            object value, JsonSerializer serializer)
-        {
+            object value, JsonSerializer serializer) {
             throw new InvalidOperationException("Use default serialization.");
         }
 
         public override object ReadJson(JsonReader reader,
             Type objectType, object existingValue,
-            JsonSerializer serializer)
-        {
+            JsonSerializer serializer) {
             try {
                 var jsonObject = JObject.Load(reader);
 

@@ -26,15 +26,12 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
         public bool DepartureRequired { get; set; }
 
         // Non-serialized
-        public bool Initialized
-        {
+        public bool Initialized {
             get { return _initialized; }
         }
-        public bool Enabled
-        {
+        public bool Enabled {
             get { return _enabled; }
-            set
-            {
+            set {
                 if (value)
                     Enable();
                 else

@@ -1,11 +1,7 @@
-﻿using System.Collections.Generic;
-using Blish_HUD;
-using Charr.Timers_BlishHUD.Pathing.Content;
-using Charr.Timers_BlishHUD.Pathing.Entities;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Speech.Synthesis;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Charr.Timers_BlishHUD.State
 {

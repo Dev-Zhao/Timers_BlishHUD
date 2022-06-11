@@ -4,13 +4,15 @@ using Blish_HUD.Controls.Effects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Charr.Timers_BlishHUD.Controls.Effects {
+namespace Charr.Timers_BlishHUD.Controls.Effects
+{
 
     /// <summary>
     /// Used to show the "scrolling" highlight used by many menu items and buttons throughout the game.
     /// Should be applied as <see cref="Control.EffectBehind"/>.
     /// </summary>
-    public class SimpleScrollingHighlightEffect : ControlEffect {
+    public class SimpleScrollingHighlightEffect : ControlEffect
+    {
 
         private const string SPARAM_MASK = "Mask";
         private const string SPARAM_OVERLAY = "Overlay";

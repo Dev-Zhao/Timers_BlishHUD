@@ -1,13 +1,14 @@
-﻿using System;
+﻿using Blish_HUD;
+using Blish_HUD.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Blish_HUD;
-using Blish_HUD.Entities;
 
-namespace Charr.Timers_BlishHUD.Pathing.Entities {
-    public abstract class Entity : INotifyPropertyChanged, IEntity {
+namespace Charr.Timers_BlishHUD.Pathing.Entities
+{
+    public abstract class Entity : INotifyPropertyChanged, IEntity
+    {
 
         protected static BasicEffect StandardEffect { get; } = new BasicEffect(GameService.Graphics.GraphicsDevice) { TextureEnabled = true };
 

@@ -1,13 +1,15 @@
-﻿using System.Collections.Generic;
-using Newtonsoft.Json;
-using Blish_HUD;
+﻿using Blish_HUD;
 using Charr.Timers_BlishHUD.Pathing.Content;
 using Charr.Timers_BlishHUD.Pathing.Entities;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
-namespace Charr.Timers_BlishHUD.Models {
+namespace Charr.Timers_BlishHUD.Models
+{
     [JsonObject(MemberSerialization.OptIn)]
-    public class Direction {
+    public class Direction
+    {
         // Serialized properties
         [JsonProperty("uid")] public string UID { get; set; }
         [JsonProperty("name")] public string Name { get; set; } = "Unnamed Direction";

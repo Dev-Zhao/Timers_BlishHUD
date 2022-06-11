@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using Blish_HUD;
+﻿using Blish_HUD;
 using Charr.Timers_BlishHUD.Pathing.Content;
 using Charr.Timers_BlishHUD.Pathing.Entities;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
-namespace Charr.Timers_BlishHUD.Models {
-    public class Marker {
+namespace Charr.Timers_BlishHUD.Models
+{
+    public class Marker
+    {
         // Serialized Properties
         [JsonProperty("uid")] public string UID { get; set; }
         [JsonProperty("name")] public string Name { get; set; } = "Unnamed Marker";

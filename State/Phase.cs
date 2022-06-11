@@ -1,18 +1,16 @@
-﻿using Charr.Timers_BlishHUD.Pathing.Content;
-using Charr.Timers_BlishHUD.Models.Triggers;
+﻿using Charr.Timers_BlishHUD.Models.Triggers;
+using Charr.Timers_BlishHUD.Pathing.Content;
+using Charr.Timers_BlishHUD.State;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using Newtonsoft.Json;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Charr.Timers_BlishHUD.State;
 
-namespace Charr.Timers_BlishHUD.Models {
+namespace Charr.Timers_BlishHUD.Models
+{
     [JsonObject(MemberSerialization.OptIn)]
-    public class Phase : IDisposable {
+    public class Phase : IDisposable
+    {
         // Serialized Properties
         [JsonProperty("name")] public string Name { get; set; } = "Unnamed Phase";
 

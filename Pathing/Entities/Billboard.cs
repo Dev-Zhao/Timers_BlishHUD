@@ -3,8 +3,10 @@ using Blish_HUD.Content;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Charr.Timers_BlishHUD.Pathing.Entities {
-    public class Billboard : Entity {
+namespace Charr.Timers_BlishHUD.Pathing.Entities
+{
+    public class Billboard : Entity
+    {
 
         private VertexPositionTexture[] _verts;
 

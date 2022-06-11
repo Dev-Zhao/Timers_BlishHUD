@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Blish_HUD.Controls;
+﻿using Blish_HUD.Controls;
 using Blish_HUD.Input;
 using Glide;
 using Microsoft.Xna.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace Charr.Timers_BlishHUD.Controls {
-    public class AlertContainer : Panel {
-        
-        
+namespace Charr.Timers_BlishHUD.Controls
+{
+    public class AlertContainer : Panel
+    {
+
+
         protected bool _lock = false;
 
         public bool Lock {
@@ -143,7 +145,7 @@ namespace Charr.Timers_BlishHUD.Controls {
                     lastRight = outerPadX;
                 }
 
-                child.Location = new Point((int) lastRight, (int) currentBottom);
+                child.Location = new Point((int)lastRight, (int)currentBottom);
 
                 lastRight = child.Right + _controlPadding.X;
 
@@ -167,7 +169,7 @@ namespace Charr.Timers_BlishHUD.Controls {
                     lastLeft = this.Width - outerPadX;
                 }
 
-                child.Location = new Point((int) (lastLeft - child.Width), (int) currentBottom);
+                child.Location = new Point((int)(lastLeft - child.Width), (int)currentBottom);
 
                 lastLeft = child.Left - _controlPadding.X;
 
@@ -191,7 +193,7 @@ namespace Charr.Timers_BlishHUD.Controls {
                     lastBottom = outerPadY;
                 }
 
-                child.Location = new Point((int) currentRight, (int) lastBottom);
+                child.Location = new Point((int)currentRight, (int)lastBottom);
 
                 lastBottom = child.Bottom + _controlPadding.Y;
 
@@ -215,7 +217,7 @@ namespace Charr.Timers_BlishHUD.Controls {
                     lastTop = this.Height - outerPadY;
                 }
 
-                child.Location = new Point((int) currentRight, (int) (lastTop - child.Height));
+                child.Location = new Point((int)currentRight, (int)(lastTop - child.Height));
 
                 lastTop = child.Top - _controlPadding.Y;
 
@@ -593,13 +595,13 @@ namespace Charr.Timers_BlishHUD.Controls {
             switch (FlowDirection) {
                 case ControlFlowDirection.SingleTopToBottom:
                 case ControlFlowDirection.SingleBottomToTop:
-                    _newHeight = maxHeight * Children.Count + (int) ControlPadding.Y * (Children.Count + 1);
-                    _newWidth = maxWidth + (int) ControlPadding.X * 2;
+                    _newHeight = maxHeight * Children.Count + (int)ControlPadding.Y * (Children.Count + 1);
+                    _newWidth = maxWidth + (int)ControlPadding.X * 2;
                     break;
                 case ControlFlowDirection.SingleLeftToRight:
                 case ControlFlowDirection.SingleRightToLeft:
-                    _newHeight = maxHeight + (int) ControlPadding.Y * 2;
-                    _newWidth = maxWidth * Children.Count + (int) ControlPadding.X * (Children.Count + 1);
+                    _newHeight = maxHeight + (int)ControlPadding.Y * 2;
+                    _newWidth = maxWidth * Children.Count + (int)ControlPadding.X * (Children.Count + 1);
                     break;
             }
 

@@ -84,7 +84,6 @@
     <Compile Include="State\Alert.cs" />
     <Compile Include="State\Direction.cs" />
     <Compile Include="State\Encounter.cs" />
-    <Compile Include="State\Health.cs" />
     <Compile Include="State\Marker.cs" />
     <Compile Include="State\Phase.cs" />
     <Compile Include="State\Triggers\Trigger.cs" />

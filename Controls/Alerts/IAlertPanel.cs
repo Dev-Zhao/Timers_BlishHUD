@@ -1,9 +1,11 @@
-﻿using System;
-using Blish_HUD.Content;
+﻿using Blish_HUD.Content;
 using Microsoft.Xna.Framework;
+using System;
 
-namespace Charr.Timers_BlishHUD.Controls {
-    public interface IAlertPanel : IDisposable {
+namespace Charr.Timers_BlishHUD.Controls
+{
+    public interface IAlertPanel : IDisposable
+    {
 
         public float MaxFill { get; set; }
         public float CurrentFill { get; set; }

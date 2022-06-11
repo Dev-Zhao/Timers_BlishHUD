@@ -1,15 +1,16 @@
 ﻿using Blish_HUD;
+using Blish_HUD.Content;
 using Blish_HUD.Controls;
+using Charr.Timers_BlishHUD.Controls.Effects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
-using Blish_HUD.Content;
-using Charr.Timers_BlishHUD.Controls.Effects;
 
-namespace Charr.Timers_BlishHUD.Controls {
-    public class AlertPanel : FlowPanel, IAlertPanel {
+namespace Charr.Timers_BlishHUD.Controls
+{
+    public class AlertPanel : FlowPanel, IAlertPanel
+    {
         public static int DEFAULT_ALERTPANEL_WIDTH = 320;
         public static int DEFAULT_ALERTPANEL_HEIGHT = 128;
 
@@ -79,7 +80,7 @@ namespace Charr.Timers_BlishHUD.Controls {
                     _animFill?.Cancel();
                     _animFill = null;
                     _animFill = Animation.Tweener.Tween(this,
-                        new {DisplayedFill = _currentFill},
+                        new { DisplayedFill = _currentFill },
                         TimersModule.ModuleInstance.Resources.TICKINTERVAL,
                         0, false);
                     RecalculateLayout();
@@ -148,7 +149,8 @@ namespace Charr.Timers_BlishHUD.Controls {
                 if (Opacity <= 0) {
                     this.Visible = false;
                     _scrollEffect?.Disable();
-                } else if (_currentFill >= _maxFill){
+                }
+                else if (_currentFill >= _maxFill) {
                     _scrollEffect?.Enable();
                 }
 
@@ -177,24 +179,24 @@ namespace Charr.Timers_BlishHUD.Controls {
             // The icon image is split into two parts - (1) image above the fill crest, (2) image below the fill crest
             if (_icon != null) {
                 _topIconSource = new Rectangle(0, 0, _icon.Texture.Width,
-                    _icon.Texture.Height - (int) (_icon.Texture.Height * _fillPercent));
-                _bottomIconSource = new Rectangle(0, _icon.Texture.Height - (int) (_icon.Texture.Height * _fillPercent),
+                    _icon.Texture.Height - (int)(_icon.Texture.Height * _fillPercent));
+                _bottomIconSource = new Rectangle(0, _icon.Texture.Height - (int)(_icon.Texture.Height * _fillPercent),
                     _icon.Texture.Width,
-                    (int) (_icon.Texture.Height * _fillPercent));
+                    (int)(_icon.Texture.Height * _fillPercent));
             }
 
             // Where the icon images will be drawn, image is automatically scaled to fit the destination rectangle size
-            _topIconDestination = new Rectangle(0, 0, _iconSize, _iconSize - (int) _fillHeight);
-            _bottomIconDestination = new Rectangle(0, _iconSize - (int) _fillHeight, _iconSize, (int) _fillHeight);
+            _topIconDestination = new Rectangle(0, 0, _iconSize, _iconSize - (int)_fillHeight);
+            _bottomIconDestination = new Rectangle(0, _iconSize - (int)_fillHeight, _iconSize, (int)_fillHeight);
 
             // A colored rectangle to indicate fill
             _fillDestination = new Rectangle(0, (int)(_iconSize - _fillHeight), _iconSize, (int)(_fillHeight));
 
             // A white "line" at the fill height
-            _fillCrestDestination = new Rectangle(0, _iconSize - (int) (_fillHeight), _iconSize, _iconSize);
+            _fillCrestDestination = new Rectangle(0, _iconSize - (int)(_fillHeight), _iconSize, _iconSize);
 
             // Location for Text that displays time
-            _timerTextDestination = new Rectangle(0, 0, _iconSize, (int) (_iconSize * 0.99f));
+            _timerTextDestination = new Rectangle(0, 0, _iconSize, (int)(_iconSize * 0.99f));
 
             // Location for alert text
             _alertTextDestination = new Rectangle(_iconSize + 16, 0, _size.X - _iconSize - 35, this.Height);
@@ -208,32 +210,32 @@ namespace Charr.Timers_BlishHUD.Controls {
 
             // Handle fill
             //if (_maxFill > 0) {
-                // Draw icon twice
-                if (_icon != null) {
-                    // Icon above the fill
-                    if (_fillPercent < 1.0f) {
-                        spriteBatch.DrawOnCtrl(this, _icon, _topIconDestination, _topIconSource, Color.DarkGray * 0.4f);
-                    }
-
-                    // Icon below the fill
-                    if (_fillPercent > 0f) {
-                        spriteBatch.DrawOnCtrl(this, _icon, _bottomIconDestination, _bottomIconSource);
-                    }
+            // Draw icon twice
+            if (_icon != null) {
+                // Icon above the fill
+                if (_fillPercent < 1.0f) {
+                    spriteBatch.DrawOnCtrl(this, _icon, _topIconDestination, _topIconSource, Color.DarkGray * 0.4f);
                 }
-                
-                if (_fillPercent > 0) {
-                    // Draw the fill
-                    spriteBatch.DrawOnCtrl(this, ContentService.Textures.Pixel, _fillDestination, _fillColor * 0.3f);
 
-                    // Only show the fill crest if it's not completely filled
-                    if (_fillPercent < 0.99f)
-                        spriteBatch.DrawOnCtrl(this, TimersModule.ModuleInstance.Resources.TextureFillCrest,
-                            _fillCrestDestination);
+                // Icon below the fill
+                if (_fillPercent > 0f) {
+                    spriteBatch.DrawOnCtrl(this, _icon, _bottomIconDestination, _bottomIconSource);
                 }
+            }
+
+            if (_fillPercent > 0) {
+                // Draw the fill
+                spriteBatch.DrawOnCtrl(this, ContentService.Textures.Pixel, _fillDestination, _fillColor * 0.3f);
+
+                // Only show the fill crest if it's not completely filled
+                if (_fillPercent < 0.99f)
+                    spriteBatch.DrawOnCtrl(this, TimersModule.ModuleInstance.Resources.TextureFillCrest,
+                        _fillCrestDestination);
+            }
             //}
             //else if (_icon != null) {
-                // Draw icon without any fill effects
-                //spriteBatch.DrawOnCtrl(this, _icon, _iconBounds);
+            // Draw icon without any fill effects
+            //spriteBatch.DrawOnCtrl(this, _icon, _iconBounds);
             //}
 
             // Draw icon vignette (draw with or without the icon to keep a consistent look)
@@ -252,7 +254,7 @@ namespace Charr.Timers_BlishHUD.Controls {
             _shouldDispose = true;
             _animFade?.Resume();
             _animFade?.OnComplete(delegate {
-               base.Dispose();
+                base.Dispose();
             });
         }
     }

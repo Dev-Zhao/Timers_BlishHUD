@@ -8,8 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Charr.Timers_BlishHUD.Models {
-    public class TimerReadException : Exception {
+namespace Charr.Timers_BlishHUD.Models
+{
+    public class TimerReadException : Exception
+    {
         public TimerReadException() {
         }
 
@@ -21,7 +23,8 @@ namespace Charr.Timers_BlishHUD.Models {
     }
 
     [JsonObject(MemberSerialization.OptIn)]
-    public class Encounter : IDisposable {
+    public class Encounter : IDisposable
+    {
         // Serialized properties
         [JsonProperty("id")] public string Id { get; set; } = "Unknown Id";
         [JsonProperty("name")] public string Name { get; set; } = "Unknown Timer";
@@ -78,7 +81,8 @@ namespace Charr.Timers_BlishHUD.Models {
 
         // Private members
 
-        public enum EncounterStates {
+        public enum EncounterStates
+        {
             Error,
             Suspended,
             Ready,
@@ -220,7 +224,7 @@ namespace Charr.Timers_BlishHUD.Models {
                     Phases[0].WaitForStart();
                     State = EncounterStates.WaitingToRun;
                 }
-            } 
+            }
             else if (State == EncounterStates.WaitingNextPhase) {
                 // Waiting period between phases.
                 if (_currentPhase + 1 < Phases.Count) {
@@ -244,7 +248,7 @@ namespace Charr.Timers_BlishHUD.Models {
 
             if (State == EncounterStates.Running && (DateTime.Now - _lastUpdate).TotalSeconds >= TimersModule.ModuleInstance.Resources.TICKINTERVAL) {
                 // Phase updates.
-                float elapsedTime = (float) (DateTime.Now - _startTime).TotalSeconds;
+                float elapsedTime = (float)(DateTime.Now - _startTime).TotalSeconds;
                 _lastUpdate = DateTime.Now;
                 Phases[_currentPhase].Update(elapsedTime);
             }

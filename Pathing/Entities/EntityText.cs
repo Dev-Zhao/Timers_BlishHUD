@@ -2,13 +2,15 @@
 using Blish_HUD.Controls;
 using Microsoft.Xna.Framework;
 
-namespace Charr.Timers_BlishHUD.Pathing.Entities {
-    public class EntityText : EntityBillboard {
+namespace Charr.Timers_BlishHUD.Pathing.Entities
+{
+    public class EntityText : EntityBillboard
+    {
 
         private CachedStringRender _cachedTextRender;
 
-        private string _text      = string.Empty;
-        private Color  _textColor = Color.White;
+        private string _text = string.Empty;
+        private Color _textColor = Color.White;
 
         public string Text {
             get => _text;

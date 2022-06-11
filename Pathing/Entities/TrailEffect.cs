@@ -2,8 +2,10 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Charr.Timers_BlishHUD.Pathing.Entities {
-    public class TrailEffect : Blish_HUD.Graphics.SharedEffect {
+namespace Charr.Timers_BlishHUD.Pathing.Entities
+{
+    public class TrailEffect : Blish_HUD.Graphics.SharedEffect
+    {
 
         // Per-effect parameters
         private const string PARAMETER_WORLDVIEWPROJECTION = "WorldViewProjection";

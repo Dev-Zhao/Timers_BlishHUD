@@ -1,9 +1,9 @@
 ﻿using Blish_HUD;
+using Blish_HUD.Content;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System.Linq;
-using Blish_HUD.Content;
 
 namespace Charr.Timers_BlishHUD.Pathing.Entities
 {
@@ -31,8 +31,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
         private static readonly TrailEffect _sharedTrailEffect;
         private static readonly Texture2D _fadeTexture;
 
-        static TrailPathable()
-        {
+        static TrailPathable() {
             _sharedTrailEffect = new TrailEffect(GameService.Content.ContentManager.Load<Effect>("effects\\trail"));
             _fadeTexture = TimersModule.ModuleInstance.Resources.TextureFade;
         }
@@ -40,7 +39,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
         #endregion
 
         public override void HandleRebuild(GraphicsDevice graphicsDevice) { /* NOOP */ }
-        
+
         private static List<Vector3> BuildTrailWithResolution(List<Vector3> points, float pointResolution) {
             if (!points.Any()) {
                 return new List<Vector3>(0);
@@ -53,8 +52,8 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
             for (int i = 0; i < points.Count; i++) {
                 var dist = Vector3.Distance(lstPoint, points[i]);
 
-                var s   = dist / pointResolution;
-                var inc = 1    / s;
+                var s = dist / pointResolution;
+                var inc = 1 / s;
 
                 for (float v = inc; v < s - inc; v += inc) {
                     var nPoint = Vector3.Lerp(lstPoint, points[i], v / s);
@@ -69,7 +68,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
 
             return tempPoints;
         }
-        
+
         // TODO: When the time comes, this update method has plenty of places where easy optimizations can be made.
         public override void Update(GameTime gameTime) {
             if (!Visible || !ShouldShow) return;
@@ -85,8 +84,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
             var currPoint = trailPoints[0];
             var offset = Vector3.Zero;
 
-            for (int i = 0; i < trailPoints.Count - 1; i++)
-            {
+            for (int i = 0; i < trailPoints.Count - 1; i++) {
                 var nextPoint = trailPoints[i + 1];
 
                 var pathDirection = nextPoint - currPoint;
@@ -106,7 +104,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
 
                 currPoint = nextPoint;
             }
-            
+
             var fleftPoint = currPoint + (offset * this.TrailWidth);
             var frightPoint = currPoint + (offset * -this.TrailWidth);
 
@@ -122,7 +120,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
         public override void Draw(GraphicsDevice graphicsDevice) {
             if (!Visible || !ShouldShow) return;
             if (this.TrailTexture == null || _vertexData == null || _vertexData.Length < 3) return;
-            
+
             _sharedTrailEffect.SetEntityState(this.TrailTexture,
                                    this.AnimationSpeed,
                                    this.FadeNear,
@@ -135,8 +133,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
 
             graphicsDevice.SetVertexBuffer(_vertexBuffer, 0);
 
-            foreach (EffectPass trailPass in _sharedTrailEffect.CurrentTechnique.Passes)
-            {
+            foreach (EffectPass trailPass in _sharedTrailEffect.CurrentTechnique.Passes) {
                 trailPass.Apply();
 
                 graphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, _vertexBuffer.VertexCount - 2);

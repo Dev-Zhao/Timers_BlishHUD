@@ -1,7 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace Charr.Timers_BlishHUD.Pathing.Entities {
-    public class EntityBillboard : Billboard {
+namespace Charr.Timers_BlishHUD.Pathing.Entities
+{
+    public class EntityBillboard : Billboard
+    {
 
         public Entity AttachedEntity { get; }
 

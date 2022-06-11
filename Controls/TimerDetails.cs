@@ -1,12 +1,12 @@
-﻿using System;
-using Blish_HUD;
-using Blish_HUD.Controls;
+﻿using Blish_HUD.Controls;
 using Blish_HUD.Settings;
 using Charr.Timers_BlishHUD.Models;
-using Microsoft.Xna.Framework;
+using System;
 
-namespace Charr.Timers_BlishHUD.Controls {
-    public class TimerDetails : DetailsButton {
+namespace Charr.Timers_BlishHUD.Controls
+{
+    public class TimerDetails : DetailsButton
+    {
         private string _enableSettingName;
         private SettingEntry<bool> _enableSetting;
 

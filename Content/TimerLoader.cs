@@ -1,15 +1,14 @@
-﻿using System;
+﻿using Blish_HUD.Content;
+using Charr.Timers_BlishHUD.Pathing.Content;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.ServiceModel.Dispatcher;
-using Blish_HUD.Content;
-using Charr.Timers_BlishHUD.Pathing.Content;
 
 namespace Charr.Timers_BlishHUD.IO
 {
-    public class TimerStream {
+    public class TimerStream
+    {
         public Stream Stream { get; set; }
         public PathableResourceManager ResourceManager { get; set; }
 
@@ -28,7 +27,8 @@ namespace Charr.Timers_BlishHUD.IO
 
     }
 
-    public class TimerLoader: IDisposable {
+    public class TimerLoader : IDisposable
+    {
         private HashSet<String> _normalTimerFiles;
         private Dictionary<string, HashSet<ZipArchiveEntry>> _zipTimerFileEntries;
 

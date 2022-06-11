@@ -5,12 +5,11 @@ using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.BitmapFonts;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Charr.Timers_BlishHUD.Controls {
-    public class Resources : IDisposable {
+namespace Charr.Timers_BlishHUD.Controls
+{
+    public class Resources : IDisposable
+    {
         // Config
         public readonly int TICKRATE = 1000;
         public readonly float TICKINTERVAL;
@@ -131,16 +130,16 @@ namespace Charr.Timers_BlishHUD.Controls {
             r = Math.Min(Math.Max(0, r), 255);
             g = Math.Min(Math.Max(0, g), 255);
             b = Math.Min(Math.Max(0, b), 255);
-            int aInt = (int) (Math.Min(Math.Max(0f, a), 1.0f) * 255);
+            int aInt = (int)(Math.Min(Math.Max(0f, a), 1.0f) * 255);
             return new Color(r, g, b, aInt);
         }
 
         public static Color ParseColor(Color fallbackColor, List<float> values) {
             if (values?.Count == 3) {
-                return ParseColor((int) values[0], (int) values[1], (int) values[2]);
+                return ParseColor((int)values[0], (int)values[1], (int)values[2]);
             }
             else if (values?.Count == 4) {
-                return ParseColor((int) values[0], (int) values[1], (int) values[2], values[3]);
+                return ParseColor((int)values[0], (int)values[1], (int)values[2], values[3]);
             }
             else {
                 return fallbackColor;

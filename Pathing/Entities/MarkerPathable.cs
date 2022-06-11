@@ -1,9 +1,7 @@
-﻿using System;
-using Blish_HUD;
-using Blish_HUD.Entities;
+﻿using Blish_HUD;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SharpDX.MediaFoundation.DirectX;
+using System;
 using Color = Microsoft.Xna.Framework.Color;
 
 namespace Charr.Timers_BlishHUD.Pathing.Entities
@@ -25,8 +23,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
         private static readonly MarkerEffect _sharedMarkerEffect;
         private static readonly Texture2D _fadeTexture;
 
-        static MarkerPathable()
-        {
+        static MarkerPathable() {
             _sharedMarkerEffect = new MarkerEffect(GameService.Content.ContentManager.Load<Effect>(@"effects\marker"));
             _fadeTexture = TimersModule.ModuleInstance.Resources.TextureFade;
         }
@@ -50,23 +47,19 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
         /// If set to true, the <see cref="Size"/> will automatically
         /// update if a new <see cref="Texture"/> is set.
         /// </summary>
-        public bool AutoResize
-        {
+        public bool AutoResize {
             get => _autoResize;
             set => SetProperty(ref _autoResize, value);
         }
 
-        public BillboardVerticalConstraint VerticalConstraint
-        {
+        public BillboardVerticalConstraint VerticalConstraint {
             get => _verticalConstraint;
             set => SetProperty(ref _verticalConstraint, value);
         }
 
-        public Vector2 Size
-        {
+        public Vector2 Size {
             get => _size;
-            set
-            {
+            set {
                 if (SetProperty(ref _size, value))
                     RecalculateSize(_size, _scale);
             }
@@ -75,59 +68,48 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
         /// <summary>
         /// Scales the render size of the <see cref="Billboard"/>.
         /// </summary>
-        public float Scale
-        {
+        public float Scale {
             get => _scale;
-            set
-            {
+            set {
                 if (SetProperty(ref _scale, value))
                     RecalculateSize(_size, _scale);
             }
         }
 
-        public float FadeNear
-        {
+        public float FadeNear {
             get => Math.Min(_fadeNear, _fadeFar);
             set => SetProperty(ref _fadeNear, value);
         }
 
-        public float FadeFar
-        {
+        public float FadeFar {
             get => Math.Max(_fadeNear, _fadeFar);
             set => SetProperty(ref _fadeFar, value);
         }
 
-        public bool FadeCenter
-        {
+        public bool FadeCenter {
             get => _fadeCenter;
             set => SetProperty(ref _fadeCenter, value);
         }
 
-        public float PlayerFadeRadius
-        {
+        public float PlayerFadeRadius {
             get => _playerFadeRadius;
             set => SetProperty(ref _playerFadeRadius, value);
         }
 
-        public Color TintColor
-        {
+        public Color TintColor {
             get => _tintColor;
             set => SetProperty(ref _tintColor, value);
         }
 
-        public Texture2D Texture
-        {
+        public Texture2D Texture {
             get => _texture;
-            set
-            {
-                if (SetProperty(ref _texture, value) && _texture != null)
-                {
+            set {
+                if (SetProperty(ref _texture, value) && _texture != null) {
                     this.VerticalConstraint = _texture.Height == _texture.Width
                                                   ? BillboardVerticalConstraint.CameraPosition
                                                   : BillboardVerticalConstraint.PlayerPosition;
 
-                    if (_autoResize)
-                    {
+                    if (_autoResize) {
                         this.Size = new Vector2(WorldUtil.GameToWorldCoord(_texture.Width),
                                                 WorldUtil.GameToWorldCoord(_texture.Height));
                     }
@@ -145,8 +127,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
 
         public MarkerPathable(Texture2D texture, Vector3 position) : this(texture, position, Vector2.Zero) { /* NOOP */ }
 
-        public MarkerPathable(Texture2D texture, Vector3 position, Vector2 size)
-        {
+        public MarkerPathable(Texture2D texture, Vector3 position, Vector2 size) {
             Initialize();
 
             _autoResize = (size == Vector2.Zero);
@@ -157,14 +138,12 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
             //GameService.Input.MouseMoved += InputOnMouseMoved;
         }
 
-        private void Initialize()
-        {
+        private void Initialize() {
             _verts = new VertexPositionTexture[4];
             _vertexBuffer = new DynamicVertexBuffer(GameService.Graphics.GraphicsDevice, typeof(VertexPositionTexture), 4, BufferUsage.WriteOnly);
         }
 
-        private void RecalculateSize(Vector2 newSize, float scale)
-        {
+        private void RecalculateSize(Vector2 newSize, float scale) {
             _verts[0] = new VertexPositionTexture(new Vector3(0, 0, 0), new Vector2(1, 1));
             _verts[1] = new VertexPositionTexture(new Vector3(newSize.X * scale, 0, 0), new Vector2(0, 1));
             _verts[2] = new VertexPositionTexture(new Vector3(0, newSize.Y * scale, 0), new Vector2(1, 0));
@@ -174,8 +153,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
         }
 
         /// <inheritdoc />
-        public override void HandleRebuild(GraphicsDevice graphicsDevice)
-        {
+        public override void HandleRebuild(GraphicsDevice graphicsDevice) {
             RecalculateSize(_size, _scale);
         }
 
@@ -186,8 +164,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
             var modelMatrix = Matrix.CreateTranslation(_size.X / -2, _size.Y / -2, 0)
                             * Matrix.CreateScale(_scale);
 
-            if (this.Rotation == Vector3.Zero)
-            {
+            if (this.Rotation == Vector3.Zero) {
                 modelMatrix *= Matrix.CreateBillboard(this.Position + this.RenderOffset,
                                                       new Vector3(GameService.Gw2Mumble.PlayerCamera.Position.X,
                                                                   GameService.Gw2Mumble.PlayerCamera.Position.Y,
@@ -197,8 +174,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
                                                       new Vector3(0, 0, 1),
                                                       GameService.Gw2Mumble.PlayerCamera.Forward);
             }
-            else
-            {
+            else {
                 modelMatrix *= Matrix.CreateRotationX(MathHelper.ToRadians(this.Rotation.X))
                              * Matrix.CreateRotationY(MathHelper.ToRadians(this.Rotation.Y))
                              * Matrix.CreateRotationZ(MathHelper.ToRadians(this.Rotation.Z))
@@ -217,8 +193,7 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
 
             graphicsDevice.SetVertexBuffer(_vertexBuffer);
 
-            foreach (var pass in _sharedMarkerEffect.CurrentTechnique.Passes)
-            {
+            foreach (var pass in _sharedMarkerEffect.CurrentTechnique.Passes) {
                 pass.Apply();
 
                 graphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);

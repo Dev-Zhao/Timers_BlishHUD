@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms.VisualStyles;
-using Blish_HUD;
+﻿using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
 using Charr.Timers_BlishHUD.Controls;
@@ -13,9 +6,14 @@ using Charr.Timers_BlishHUD.Controls.BigWigs;
 using Charr.Timers_BlishHUD.Pathing.Content;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
-namespace Charr.Timers_BlishHUD.Models {
-    public class Alert : IDisposable {
+namespace Charr.Timers_BlishHUD.Models
+{
+    public class Alert : IDisposable
+    {
         // Serialized
         [JsonProperty("uid")] public string UID { get; set; }
         [JsonProperty("warningDuration")] public float WarningDuration { get; set; } = 15.0f;
@@ -113,21 +111,21 @@ namespace Charr.Timers_BlishHUD.Models {
             IAlertPanel panel = TimersModule.ModuleInstance._alertSizeSetting.Value == AlertType.BigWigStyle
                                     ? new BigWigAlert()
                                     : new AlertPanel() {
-                                        ControlPadding       = new Vector2(8, 8),
+                                        ControlPadding = new Vector2(8, 8),
                                         PadLeftBeforeControl = true,
-                                        PadTopBeforeControl  = true,
+                                        PadTopBeforeControl = true,
                                     };
 
-            panel.Text        = (string.IsNullOrEmpty(WarningText)) ? AlertText : WarningText;
-            panel.TextColor   = (string.IsNullOrEmpty(WarningText)) ? AlertColor : WarningColor;
-            panel.Icon        = Texture2DExtension.Duplicate(Icon);
-            panel.FillColor   = Fill;
-            panel.MaxFill     = (string.IsNullOrEmpty(WarningText)) ? 0.0f : WarningDuration;
+            panel.Text = (string.IsNullOrEmpty(WarningText)) ? AlertText : WarningText;
+            panel.TextColor = (string.IsNullOrEmpty(WarningText)) ? AlertColor : WarningColor;
+            panel.Icon = Texture2DExtension.Duplicate(Icon);
+            panel.FillColor = Fill;
+            panel.MaxFill = (string.IsNullOrEmpty(WarningText)) ? 0.0f : WarningDuration;
             panel.CurrentFill = 0.0f;
-            panel.ShouldShow  = ShowAlert;
-            
+            panel.ShouldShow = ShowAlert;
+
             ((Control)panel).Parent = TimersModule.ModuleInstance._alertContainer;
-            
+
             TimersModule.ModuleInstance._alertContainer.UpdateDisplay();
             return panel;
         }
