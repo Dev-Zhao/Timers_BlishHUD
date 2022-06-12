@@ -2,6 +2,7 @@
 using Blish_HUD.Input;
 using Newtonsoft.Json;
 using System;
+using Microsoft.Xna.Framework.Input;
 
 
 namespace Charr.Timers_BlishHUD.Models.Triggers
@@ -29,7 +30,7 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
             if (EntryRequired && DepartureRequired)
                 return "requireEntry and requireDeparture cannot both be set to true";
             if (EntryRequired || DepartureRequired) {
-                if (Position?.Count != 3 || Position?.Count != 2)
+                if (Position?.Count != 3 && Position?.Count != 2)
                     return "invalid position";
                 if (Antipode?.Count != 3 && Radius <= 0)
                     return "invalid radius/size";
@@ -72,7 +73,7 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
         }
 
         public override bool Triggered() {
-            if (TimersModule.ModuleInstance._keyBindSettings[KeyBind].Value.PrimaryKey == 0) { return true; }
+            if (TimersModule.ModuleInstance._keyBindSettings[KeyBind].Value.PrimaryKey == Keys.None) { return false; }
 
             // Keys must be pressed to trigger
             return _keysPressed;

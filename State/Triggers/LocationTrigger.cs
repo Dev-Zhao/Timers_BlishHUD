@@ -14,7 +14,7 @@ namespace Charr.Timers_BlishHUD.Models.Triggers
             if (EntryRequired && DepartureRequired)
                 return "requireEntry and requireDeparture cannot both be set to true";
             if (EntryRequired || DepartureRequired) {
-                if (Position?.Count != 3 || Position?.Count != 2)
+                if (Position?.Count != 3 && Position?.Count != 2)
                     return "invalid position";
                 if (Antipode?.Count != 3 && Radius <= 0)
                     return "invalid radius/size";
