@@ -102,6 +102,7 @@ namespace Charr.Timers_BlishHUD
         public SettingEntry<bool> _hideAlertsSetting;
         public SettingEntry<bool> _hideDirectionsSetting;
         public SettingEntry<bool> _hideMarkersSetting;
+        public SettingEntry<bool> _hideSoundsSetting;
         public SettingEntry<AlertType> _alertSizeSetting;
         public SettingEntry<ControlFlowDirection> _alertDisplayOrientationSetting;
         private SettingEntry<Point> _alertContainerLocationSetting;
@@ -144,6 +145,7 @@ namespace Charr.Timers_BlishHUD
             _hideAlertsSetting = _alertSettingCollection.DefineSetting("HideAlerts", false);
             _hideDirectionsSetting = _alertSettingCollection.DefineSetting("HideDirections", false);
             _hideMarkersSetting = _alertSettingCollection.DefineSetting("HideMarkers", false);
+            _hideSoundsSetting = _alertSettingCollection.DefineSetting("HideSounds", false);
             _centerAlertContainerSetting = _alertSettingCollection.DefineSetting("CenterAlertContainer", true);
             _alertSizeSetting = _alertSettingCollection.DefineSetting("AlertSize", AlertType.BigWigStyle);
             _alertDisplayOrientationSetting =
@@ -382,6 +384,7 @@ namespace Charr.Timers_BlishHUD
                 var latestRelease = await github.Repository.Release.GetLatest("QuitarHero", "Hero-Timers");
                 if (latestRelease.CreatedAt > _lastTimersUpdate.Value) {
                     _timersNeedUpdate = true;
+                    ScreenNotification.ShowNotification($"New timers available. Go to settings to update!", ScreenNotification.NotificationType.Warning, null, 5);
                 }
             }
             catch (Exception ex) {
@@ -571,10 +574,10 @@ namespace Charr.Timers_BlishHUD
                 };
 
                 if (_timersNeedUpdate) {
-                    notice.Text = "Your timers are outdated!\nDownload some and place them in your timers folder.";
+                    notice.Text = "Your timers are outdated!\nDownload some now!";
                 }
                 else {
-                    notice.Text = "You don't have any timers!\nDownload some and place them in your timers folder.";
+                    notice.Text = "You don't have any timers!\nDownload some now!";
                 }
 
                 var downloadPanel = new FlowPanel() {
@@ -608,7 +611,7 @@ namespace Charr.Timers_BlishHUD
                 };
 
                 var skipUpdate = new StandardButton() {
-                    Text = "Skip Update",
+                    Text = "Skip for now",
                     Parent = noTimersPanel,
                     Width = 196,
                     Location = new Point(openTimersFolder.Right + 4, downloadPanel.Bottom + 4)
@@ -622,10 +625,6 @@ namespace Charr.Timers_BlishHUD
                     AutoSizeHeight = true,
                     Width = notice.Width,
                     Top = skipUpdate.Bottom + 4
-                };
-
-                manualDownload.Click += delegate {
-                    Process.Start("https://github.com/QuitarHero/Hero-Timers/releases/latest/download/Hero-Timers.zip");
                 };
 
                 bool isDownloading = false;
@@ -659,6 +658,10 @@ namespace Charr.Timers_BlishHUD
                                     "Wait and try downloading again\nOr manually download and place them in your timers folder.";
                                 downloadPanel.Width = 400;
                                 manualDownload.Visible = true;
+                                manualDownload.Click += delegate {
+                                    Process.Start("https://github.com/QuitarHero/Hero-Timers/releases/latest/download/Hero-Timers.zip");
+                                    _lastTimersUpdate.Value = latestRelease.CreatedAt;
+                                };
                                 downloadPanel.RecalculateLayout();
                             }
                             else {
@@ -808,12 +811,27 @@ namespace Charr.Timers_BlishHUD
                 _hideMarkersSetting.Value = hideMarkersCB.Checked;
             };
 
+            Checkbox hideSoundsCB = new Checkbox {
+                Parent = _alertSettingsWindow,
+                Text = "Mute Text to Speech",
+                BasicTooltipText =
+                    "When enabled, text to speech will be muted.",
+                Location = new Point(
+                    Control.ControlStandard.ControlOffset.X,
+                    hideMarkersCB.Bottom + Control.ControlStandard.ControlOffset.Y)
+            };
+            hideSoundsCB.Checked = _hideSoundsSetting.Value;
+
+            hideSoundsCB.CheckedChanged += delegate {
+                _hideSoundsSetting.Value = hideSoundsCB.Checked;
+            };
+
             Checkbox fillDirection = new Checkbox {
                 Parent = _alertSettingsWindow,
                 Text = "Invert Alert Fill",
                 BasicTooltipText = "When enabled, alerts fill up as time passes.\nWhen disabled, alerts drain as time passes.",
                 Location = new Point(Control.ControlStandard.ControlOffset.X,
-                                     hideMarkersCB.Bottom + Control.ControlStandard.ControlOffset.Y)
+                                     hideSoundsCB.Bottom + Control.ControlStandard.ControlOffset.Y)
             };
             fillDirection.Checked = _alertFillDirection.Value;
 

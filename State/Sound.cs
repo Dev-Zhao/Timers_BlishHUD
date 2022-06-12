@@ -36,6 +36,8 @@ namespace Charr.Timers_BlishHUD.State
                 return Name + " invalid timestamps property";
 
             _synthesizer = new SpeechSynthesizer();
+            _synthesizer.Rate = -2;
+            _synthesizer.Volume = 100;
 
             return null;
         }
@@ -54,10 +56,7 @@ namespace Charr.Timers_BlishHUD.State
         }
 
         public void Update(float elapsedTime) {
-            if (!_activated) return;
-
-            _synthesizer.Volume = 100;
-            _synthesizer.Rate = -2;
+            if (!_activated || TimersModule.ModuleInstance._hideSoundsSetting.Value) return;
 
             foreach (float time in Timestamps) {
                 if (elapsedTime >= time && elapsedTime <= time + TimersModule.ModuleInstance.Resources.TICKINTERVAL) {
