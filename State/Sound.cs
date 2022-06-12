@@ -9,7 +9,7 @@ namespace Charr.Timers_BlishHUD.State
     {
         // Serialized Properties
         [JsonProperty("uid")] public string UID { get; set; }
-        [JsonProperty("name")] public string Name { get; set; } = "Unnamed Marker";
+        [JsonProperty("name")] public string Name { get; set; } = "Unnamed Sound";
         [JsonProperty("text")] public string Text { get; set; }
         [JsonProperty("timestamps")] public List<float> Timestamps { get; set; }
 

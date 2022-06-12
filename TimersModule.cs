@@ -13,11 +13,19 @@ using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Net;
+using System.Runtime.Remoting.Channels;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
+using Octokit;
+using SharpDX.Direct3D11;
+using Label = Blish_HUD.Controls.Label;
 
 namespace Charr.Timers_BlishHUD
 {
@@ -80,6 +88,7 @@ namespace Charr.Timers_BlishHUD
         private EventHandler<ValueEventArgs<int>> _onNewMapLoaded;
 
         // Settings
+        private SettingEntry<DateTimeOffset> _lastTimersUpdate;
         private SettingEntry<bool> _showDebugSetting;
         public SettingEntry<bool> _debugModeSetting;
         private Dictionary<String, SettingEntry<bool>> _encounterEnableSettings;
@@ -102,6 +111,8 @@ namespace Charr.Timers_BlishHUD
 
         public TimerLoader timerLoader;
 
+        private bool _timersNeedUpdate = false;
+
         [ImportingConstructor]
         public TimersModule([Import("ModuleParameters")] ModuleParameters moduleParameters) : base(moduleParameters) {
             ModuleInstance = this;
@@ -110,6 +121,11 @@ namespace Charr.Timers_BlishHUD
         #region Settings
 
         protected override void DefineSettings(SettingCollection settings) {
+            if (!settings.TryGetSetting("LastTimersUpdate", out _lastTimersUpdate)) {
+                _lastTimersUpdate = settings.DefineSetting("LastTimersUpdate", DateTimeOffset.MinValue,
+                    "Last Timers Update", "Date of last timers update");
+            }
+
             _showDebugSetting = settings.DefineSetting("ShowDebugText", false, "Show Debug Text",
                 "For creating timers. Placed in top-left corner. Displays location status.");
             _debugModeSetting = settings.DefineSetting("DebugMode", false, "Enable Debug Mode",
@@ -361,16 +377,101 @@ namespace Charr.Timers_BlishHUD
         protected override async Task LoadAsync() {
             string timerDirectory = DirectoriesManager.GetFullDirectoryPath("timers");
 
-            timerLoader = new TimerLoader(timerDirectory);
-            timerLoader.LoadFiles(AddEncounter);
+            try {
+                var github = new GitHubClient(new ProductHeaderValue("BlishHUD_Timers"));
+                var latestRelease = await github.Repository.Release.GetLatest("QuitarHero", "Hero-Timers");
+                if (latestRelease.CreatedAt > _lastTimersUpdate.Value) {
+                    _timersNeedUpdate = true;
+                }
+            }
+            catch (Exception ex) {
+                _timersNeedUpdate = false;
+            }
 
-            _encountersLoaded = true;
+            if (!_timersNeedUpdate) {
+                timerLoader = new TimerLoader(timerDirectory);
+                timerLoader.LoadFiles(AddEncounter);
+                _encountersLoaded = true;
+            }
+
             _tabPanel = BuildSettingsPanel(GameService.Overlay.BlishHudWindow.ContentRegion);
             _onNewMapLoaded = delegate { ResetActivatedEncounters(); };
             ResetActivatedEncounters();
             SettingsUpdateHideAlerts();
             SettingsUpdateHideDirections();
             SettingsUpdateHideMarkers();
+        }
+
+        private void ShowTimerEntries(Panel timerPanel) {
+            foreach (Encounter enc in _invalidEncounters) {
+                TimerDetails entry = new TimerDetails {
+                    Parent = timerPanel,
+                    Encounter = enc,
+                };
+                entry.Initialize();
+
+                entry.PropertyChanged += delegate { ResetActivatedEncounters(); };
+
+                _allTimerDetails.Add(entry);
+
+
+                entry.ReloadClicked += delegate (Object sender, Encounter enc) {
+                    if (enc.IsFromZip) {
+                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
+                            Encounter enc = ParseEncounter(timerStream);
+                            UpdateEncounter(enc);
+                            entry.Encounter?.Dispose();
+                            entry.Encounter = enc;
+                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
+                        }, enc.ZipFile, enc.TimerFile);
+                    }
+                    else {
+                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
+                            Encounter enc = ParseEncounter(timerStream);
+                            UpdateEncounter(enc);
+                            entry.Encounter?.Dispose();
+                            entry.Encounter = enc;
+                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
+                        }, enc.TimerFile);
+                    }
+                };
+
+            }
+
+            foreach (Encounter enc in _encounters) {
+                TimerDetails entry = new TimerDetails {
+                    Parent = timerPanel,
+                    Encounter = enc,
+                };
+
+                entry.Initialize();
+
+                entry.PropertyChanged += delegate { ResetActivatedEncounters(); };
+
+                _allTimerDetails.Add(entry);
+
+
+                entry.ReloadClicked += delegate (Object sender, Encounter enc) {
+                    if (enc.IsFromZip) {
+                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
+                            Encounter enc = ParseEncounter(timerStream);
+                            UpdateEncounter(enc);
+                            entry.Encounter?.Dispose();
+                            entry.Encounter = enc;
+                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
+                        }, enc.ZipFile, enc.TimerFile);
+                    }
+                    else {
+                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
+                            Encounter enc = ParseEncounter(timerStream);
+                            UpdateEncounter(enc);
+                            entry.Encounter?.Dispose();
+                            entry.Encounter = enc;
+                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
+                        }, enc.TimerFile);
+                    }
+                };
+            }
         }
 
         private Panel BuildSettingsPanel(Rectangle panelBounds) {
@@ -453,7 +554,7 @@ namespace Charr.Timers_BlishHUD
             timerPanel.Size = new Point(mainPanel.Right - menuSection.Right - Control.ControlStandard.ControlOffset.X,
                                         mainPanel.Height - enableAllButton.Height - StandardButton.ControlStandard.ControlOffset.Y * 2);
 
-            if (!Directory.EnumerateFiles(DirectoriesManager.GetFullDirectoryPath("timers")).Any()) {
+            if (!Directory.EnumerateFiles(DirectoriesManager.GetFullDirectoryPath("timers")).Any() || _timersNeedUpdate) {
                 var noTimersPanel = new Panel() {
                     Parent = mainPanel,
                     Location = new Point(menuSection.Right + Panel.MenuStandard.ControlOffset.X, Panel.MenuStandard.ControlOffset.Y),
@@ -461,8 +562,7 @@ namespace Charr.Timers_BlishHUD
                     Size = timerPanel.Size
                 };
 
-                var noTimersNotice = new Label() {
-                    Text = "You don't have any timers!\nDownload some and place them in your timers folder.",
+                var notice = new Label() {
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Bottom,
                     Parent = noTimersPanel,
@@ -470,18 +570,48 @@ namespace Charr.Timers_BlishHUD
                     ClipsBounds = false,
                 };
 
+                if (_timersNeedUpdate) {
+                    notice.Text = "Your timers are outdated!\nDownload some and place them in your timers folder.";
+                }
+                else {
+                    notice.Text = "You don't have any timers!\nDownload some and place them in your timers folder.";
+                }
+
+                var downloadPanel = new FlowPanel() {
+                    Parent = noTimersPanel,
+                    FlowDirection = ControlFlowDirection.LeftToRight,
+                };
+                downloadPanel.Resized += delegate {
+                    downloadPanel.Location =
+                        new Point(noTimersPanel.Width / 2 - downloadPanel.Width / 2, notice.Bottom + 24);
+                };
+                downloadPanel.Width = 196;
+
                 var downloadHerosPack = new StandardButton() {
                     Text = "Download Hero's Timers",
-                    Parent = noTimersPanel,
+                    Parent = downloadPanel,
                     Width = 196,
-                    Location = new Point(noTimersPanel.Width / 2 - 200, noTimersNotice.Bottom + 24),
                 };
+
+                var manualDownload = new StandardButton() {
+                    Text = "Manual Download",
+                    Parent = downloadPanel,
+                    Width = 196
+                };
+                manualDownload.Visible = false;
 
                 var openTimersFolder = new StandardButton() {
                     Text = "Open Timers Folder",
                     Parent = noTimersPanel,
                     Width = 196,
-                    Location = new Point(noTimersPanel.Width / 2 + 4, noTimersNotice.Bottom + 24),
+                    Location = new Point(noTimersPanel.Width / 2 - 200, downloadPanel.Bottom + 4),
+                };
+
+                var skipUpdate = new StandardButton() {
+                    Text = "Skip Update",
+                    Parent = noTimersPanel,
+                    Width = 196,
+                    Location = new Point(openTimersFolder.Right + 4, downloadPanel.Bottom + 4)
                 };
 
                 var restartBlishHudAfter = new Label() {
@@ -490,13 +620,79 @@ namespace Charr.Timers_BlishHUD
                     VerticalAlignment = VerticalAlignment.Top,
                     Parent = noTimersPanel,
                     AutoSizeHeight = true,
-                    Width = noTimersNotice.Width,
-                    Top = openTimersFolder.Bottom + 4
+                    Width = notice.Width,
+                    Top = skipUpdate.Bottom + 4
                 };
 
-                downloadHerosPack.Click += delegate (object sender, MouseEventArgs args) { Process.Start("https://github.com/QuitarHero/Hero-Timers/releases/latest/download/Hero-Timers.zip"); };
+                manualDownload.Click += delegate {
+                    Process.Start("https://github.com/QuitarHero/Hero-Timers/releases/latest/download/Hero-Timers.zip");
+                };
+
+                bool isDownloading = false;
+                downloadHerosPack.Click += async delegate(object sender, MouseEventArgs args) {
+                    try {
+                        if (isDownloading) {
+                            return;
+                        }
+                        isDownloading = true;
+
+                        var github = new GitHubClient(new ProductHeaderValue("BlishHUD_Timers"));
+                        var latestRelease = await github.Repository.Release.GetLatest("QuitarHero", "Hero-Timers");
+                        var assetId = latestRelease.Assets[0].Id;
+                        var downloadUrl =
+                            new Uri($"https://api.github.com/repos/QuitarHero/Hero-Timers/releases/assets/{assetId}");
+
+                        // Download with WebClient
+                        using var webClient = new WebClient();
+                        webClient.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
+                        webClient.Headers.Add(HttpRequestHeader.Accept, "application/octet-stream");
+
+                        // Download the file
+                        webClient.DownloadFileAsync(downloadUrl, $"{DirectoriesManager.GetFullDirectoryPath("timers")}/{latestRelease.Assets[0].Name}");
+                        restartBlishHudAfter.Text = "Downloading latest version of timers, please wait...";
+                        webClient.DownloadFileCompleted += delegate (Object sender, AsyncCompletedEventArgs eventArgs) {
+                            if (eventArgs.Error != null) {
+                                notice.Text =
+                                    "Download failed: API Rate Limit Reached!";
+                                ScreenNotification.ShowNotification($"Failed to download timers: API Rate Limit Reached!", ScreenNotification.NotificationType.Error, null, 3);
+                                restartBlishHudAfter.Text =
+                                    "Wait and try downloading again\nOr manually download and place them in your timers folder.";
+                                downloadPanel.Width = 400;
+                                manualDownload.Visible = true;
+                                downloadPanel.RecalculateLayout();
+                            }
+                            else {
+                                notice.Text = "Your timers have been updated!";
+                                restartBlishHudAfter.Text =
+                                    "Download complete, click Continue to enable them.";
+                                ScreenNotification.ShowNotification($"Timers updated!", ScreenNotification.NotificationType.Info, null, 3);
+                                _lastTimersUpdate.Value = latestRelease.CreatedAt;
+                                downloadPanel.Dispose();
+                                skipUpdate.Text = "Continue";
+                            }
+
+                            isDownloading = false;
+                        };
+                    }
+                    catch (Exception ex) {
+                        ScreenNotification.ShowNotification($"Failed to download timers: try again later...", ScreenNotification.NotificationType.Error, null, 3);
+                        isDownloading = false;
+                    }
+                };
 
                 openTimersFolder.Click += delegate (object sender, MouseEventArgs args) { Process.Start("explorer.exe", $"/open, \"{DirectoriesManager.GetFullDirectoryPath("timers")}\\\""); };
+
+                skipUpdate.Click += delegate {
+                    if (_encountersLoaded) {
+                        return;
+                    }
+                    string timerDirectory = DirectoriesManager.GetFullDirectoryPath("timers");
+                    timerLoader = new TimerLoader(timerDirectory);
+                    timerLoader.LoadFiles(AddEncounter);
+                    _encountersLoaded = true;
+                    noTimersPanel.Dispose();
+                    ShowTimerEntries(timerPanel);
+                };
             }
 
             searchBox.Width = menuSection.Width;
@@ -899,75 +1095,7 @@ namespace Charr.Timers_BlishHUD
             closeAlertSettingsButton.Click += delegate { _alertSettingsWindow.Hide(); };
 
             // 2. Timer Entries
-            foreach (Encounter enc in _invalidEncounters) {
-                TimerDetails entry = new TimerDetails {
-                    Parent = timerPanel,
-                    Encounter = enc,
-                };
-                entry.Initialize();
-
-                entry.PropertyChanged += delegate { ResetActivatedEncounters(); };
-
-                _allTimerDetails.Add(entry);
-
-
-                entry.ReloadClicked += delegate (Object sender, Encounter enc) {
-                    if (enc.IsFromZip) {
-                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
-                            Encounter enc = ParseEncounter(timerStream);
-                            UpdateEncounter(enc);
-                            entry.Encounter?.Dispose();
-                            entry.Encounter = enc;
-                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
-                        }, enc.ZipFile, enc.TimerFile);
-                    }
-                    else {
-                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
-                            Encounter enc = ParseEncounter(timerStream);
-                            UpdateEncounter(enc);
-                            entry.Encounter?.Dispose();
-                            entry.Encounter = enc;
-                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
-                        }, enc.TimerFile);
-                    }
-                };
-
-            }
-
-            foreach (Encounter enc in _encounters) {
-                TimerDetails entry = new TimerDetails {
-                    Parent = timerPanel,
-                    Encounter = enc,
-                };
-
-                entry.Initialize();
-
-                entry.PropertyChanged += delegate { ResetActivatedEncounters(); };
-
-                _allTimerDetails.Add(entry);
-
-
-                entry.ReloadClicked += delegate (Object sender, Encounter enc) {
-                    if (enc.IsFromZip) {
-                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
-                            Encounter enc = ParseEncounter(timerStream);
-                            UpdateEncounter(enc);
-                            entry.Encounter?.Dispose();
-                            entry.Encounter = enc;
-                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
-                        }, enc.ZipFile, enc.TimerFile);
-                    }
-                    else {
-                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
-                            Encounter enc = ParseEncounter(timerStream);
-                            UpdateEncounter(enc);
-                            entry.Encounter?.Dispose();
-                            entry.Encounter = enc;
-                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
-                        }, enc.TimerFile);
-                    }
-                };
-            }
+            ShowTimerEntries(timerPanel);
 
             // 3. Categories
             Menu timerCategories = new Menu {
@@ -1088,6 +1216,8 @@ namespace Charr.Timers_BlishHUD
         protected override void Unload() {
             // Unload here
             _debugText.Dispose();
+
+            timerLoader?.Dispose();
 
             // Deregister event handlers
             GameService.Gw2Mumble.CurrentMap.MapChanged -= _onNewMapLoaded;
