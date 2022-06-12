@@ -19,6 +19,7 @@ namespace Charr.Timers_BlishHUD.Models
         [JsonProperty("size")] public float Size { get; set; } = 1.0f;
         [JsonProperty("texture")] public string TextureString { get; set; }
         [JsonProperty("text")] public string Text { get; set; }
+        [JsonProperty("fadeCenter")] public bool FadeCenter { get; set; } = true;
         [JsonProperty("timestamps")] public List<float> Timestamps { get; set; }
 
 
@@ -56,6 +57,7 @@ namespace Charr.Timers_BlishHUD.Models
                 return Name + " invalid texture property";
 
             _markerPathable = new MarkerPathable {
+                FadeCenter = FadeCenter,
                 Opacity = Opacity,
                 Rotation = (Rotation != null && Rotation.Count == 3)
                     ? new Vector3(Rotation[0], Rotation[1], Rotation[2])
