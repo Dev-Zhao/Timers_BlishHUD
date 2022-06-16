@@ -1,6 +1,8 @@
-﻿using Blish_HUD;
+﻿using System;
+using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
+using Blish_HUD.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -48,12 +50,20 @@ namespace Charr.Timers_BlishHUD.Controls.BigWigs
         public AsyncTexture2D Icon { get; set; }
 
         protected override CaptureType CapturesInput() {
+            if (!TimersModule.ModuleInstance._lockAlertContainerSetting.Value) {
+                return base.CapturesInput();
+            }
+
             return CaptureType.None | CaptureType.DoNotBlock;
         }
 
         public BigWigAlert() {
             this.Size = new Point(DEFAULT_WIDTH, ICON_SIZE + TOP_BORDER + BOTTOM_BORDER);
             this.Icon = new AsyncTexture2D(ContentService.Textures.Error);
+
+            GameService.Input.Mouse.LeftMouseButtonPressed += delegate (Object sender, MouseEventArgs e) {
+                ((AlertContainer)this.Parent).HandleLeftMouseButtonReleased(e);
+            };
         }
 
         // BOUNDS

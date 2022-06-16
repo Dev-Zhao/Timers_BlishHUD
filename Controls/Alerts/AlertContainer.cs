@@ -4,7 +4,9 @@ using Glide;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using Blish_HUD;
 
 namespace Charr.Timers_BlishHUD.Controls
 {
@@ -477,7 +479,9 @@ namespace Charr.Timers_BlishHUD.Controls
         private bool canChangeSize = false;
 
         public AlertContainer() : base() {
-            Input.Mouse.LeftMouseButtonReleased += delegate { Dragging = false; };
+            GameService.Input.Mouse.LeftMouseButtonReleased += delegate(Object sender, MouseEventArgs args) {
+                HandleLeftMouseButtonReleased(args);
+            };
             _animSizeChange = null;
             ChildAdded += delegate {
                 canChangeSize = false;
@@ -489,37 +493,45 @@ namespace Charr.Timers_BlishHUD.Controls
 
         protected override CaptureType CapturesInput() {
             if (Lock || !Visible) {
-                return CaptureType.None;
+                return CaptureType.None | CaptureType.DoNotBlock;
             }
 
-            return CaptureType.Mouse | CaptureType.MouseWheel | CaptureType.Filter;
-        }
-
-        protected override void OnMouseMoved(MouseEventArgs e) {
-            MouseOverPanel = false;
-            if (this.RelativeMousePosition.Y < this.ContentRegion.Bottom)
-                MouseOverPanel = true;
-
-            base.OnMouseMoved(e);
-        }
-
-        protected override void OnMouseLeft(MouseEventArgs e) {
-            MouseOverPanel = false;
-            base.OnMouseLeft(e);
+            return base.CapturesInput();
         }
 
         protected override void OnLeftMouseButtonPressed(MouseEventArgs e) {
-            if (MouseOverPanel) {
+            if (!Lock) {
+                DragStart = this.RelativeMousePosition;
                 Dragging = true;
-                DragStart = Input.Mouse.Position;
             }
-
             base.OnLeftMouseButtonPressed(e);
         }
 
-        protected override void OnLeftMouseButtonReleased(MouseEventArgs e) {
+        public void HandleLeftMouseButtonReleased(MouseEventArgs e) {
             Dragging = false;
-            base.OnLeftMouseButtonReleased(e);
+            Debug.WriteLine("released "+ Location);
+            switch (FlowDirection) {
+                case ControlFlowDirection.SingleLeftToRight:
+                case ControlFlowDirection.SingleTopToBottom:
+                    Point newLoc = Location;
+                    newLoc.X = Math.Max(Location.X, 0);
+                    newLoc.X = Math.Min(newLoc.X, GameService.Graphics.SpriteScreen.Width - Width / 2);
+                    newLoc.Y = Math.Max(Location.Y, 0);
+                    newLoc.Y = Math.Min(newLoc.Y, GameService.Graphics.SpriteScreen.Height - Height / 2);
+                    Location = newLoc;
+                    break;
+                case ControlFlowDirection.SingleRightToLeft:
+                case ControlFlowDirection.SingleBottomToTop:
+                    Point newAnchor = _anchor;
+                    newAnchor.X = Math.Max(_anchor.X, Width / 2);
+                    newAnchor.X = Math.Min(newAnchor.X, GameService.Graphics.SpriteScreen.Width);
+                    newAnchor.Y = Math.Max(_anchor.Y, Height / 2);
+                    newAnchor.Y = Math.Min(newAnchor.Y, GameService.Graphics.SpriteScreen.Height);
+
+                    _anchor = newAnchor;
+                    break;
+            }
+            ContainerDragged?.Invoke(this, EventArgs.Empty);
         }
 
         public int GetChildrenMaxHeight() {
@@ -704,18 +716,18 @@ namespace Charr.Timers_BlishHUD.Controls
 
         public override void UpdateContainer(GameTime gameTime) {
             if (Dragging) {
-                var nOffset = Input.Mouse.Position - DragStart;
-                Location += nOffset;
-                DragStart = Input.Mouse.Position;
+                var newLocation = Input.Mouse.Position - DragStart;
+                var offset = newLocation - Location;
+                Location = newLocation;
+                DragStart = this.RelativeMousePosition;
                 if (_anchor != Point.Zero) {
                     if (FlowDirection == ControlFlowDirection.SingleRightToLeft ||
                         FlowDirection == ControlFlowDirection.SingleBottomToTop) {
-                        _anchor += nOffset;
+                        _anchor += offset;
                     }
                 }
-
-                ContainerDragged?.Invoke(this, EventArgs.Empty);
             }
+
             UpdateDisplay();
         }
     }
