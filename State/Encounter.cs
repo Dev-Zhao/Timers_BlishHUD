@@ -231,7 +231,10 @@ namespace Charr.Timers_BlishHUD.Models
                     if (Phases[_currentPhase + 1].StartTrigger != null &&
                         Phases[_currentPhase + 1].StartTrigger.Triggered()) {
                         _currentPhase++;
+                        _startTime = DateTime.Now;
                         Phases[_currentPhase].Start();
+                        Phases[_currentPhase].Update(0.0f);
+                        _lastUpdate = DateTime.Now;
                         State = EncounterStates.Running;
                     }
                 }

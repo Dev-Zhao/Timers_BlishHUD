@@ -63,6 +63,8 @@ namespace Charr.Timers_BlishHUD
 
         // Controls - Tab
         private WindowTab _timersTab;
+        public Menu timerCategories;
+        public FlowPanel timerPanel;
         private Panel _tabPanel;
         private List<TimerDetails> _allTimerDetails;
         private List<TimerDetails> _displayedTimerDetails;
@@ -97,7 +99,7 @@ namespace Charr.Timers_BlishHUD
         public SettingEntry<KeyBinding>[] _keyBindSettings;
 
         private SettingCollection _alertSettingCollection;
-        private SettingEntry<bool> _lockAlertContainerSetting;
+        public SettingEntry<bool> _lockAlertContainerSetting;
         private SettingEntry<bool> _centerAlertContainerSetting;
         public SettingEntry<bool> _hideAlertsSetting;
         public SettingEntry<bool> _hideDirectionsSetting;
@@ -149,7 +151,7 @@ namespace Charr.Timers_BlishHUD
             _centerAlertContainerSetting = _alertSettingCollection.DefineSetting("CenterAlertContainer", true);
             _alertSizeSetting = _alertSettingCollection.DefineSetting("AlertSize", AlertType.BigWigStyle);
             _alertDisplayOrientationSetting =
-                _alertSettingCollection.DefineSetting("AlertDisplayOrientation", ControlFlowDirection.TopToBottom);
+                _alertSettingCollection.DefineSetting("AlertDisplayOrientation", ControlFlowDirection.SingleTopToBottom);
             _alertContainerLocationSetting = _alertSettingCollection.DefineSetting("AlertContainerLocation", Point.Zero);
             _alertMoveDelaySetting = _alertSettingCollection.DefineSetting("AlertMoveSpeed", 1.0f);
             _alertFadeDelaySetting = _alertSettingCollection.DefineSetting("AlertFadeSpeed", 1.0f);
@@ -229,7 +231,7 @@ namespace Charr.Timers_BlishHUD
         }
 
         private void SettingsUpdateAlertContainerLocation(object sender = null, EventArgs e = null) {
-            switch (_alertDisplayOrientationSetting.Value) {
+            /*switch (_alertDisplayOrientationSetting.Value) {
                 case ControlFlowDirection.SingleLeftToRight:
                 case ControlFlowDirection.SingleTopToBottom:
                     _alertContainer.Location = _alertContainerLocationSetting.Value;
@@ -242,7 +244,7 @@ namespace Charr.Timers_BlishHUD
                     _alertContainer.Location =
                         new Point(_alertContainerLocationSetting.Value.X, _alertContainerLocationSetting.Value.Y - _alertContainer.Height);
                     break;
-            }
+            }*/
         }
 
         private void SettingsUpdateAlertMoveDelay(object sender = null, EventArgs e = null) {
@@ -384,7 +386,7 @@ namespace Charr.Timers_BlishHUD
                 var latestRelease = await github.Repository.Release.GetLatest("QuitarHero", "Hero-Timers");
                 if (latestRelease.CreatedAt > _lastTimersUpdate.Value) {
                     _timersNeedUpdate = true;
-                    ScreenNotification.ShowNotification($"New timers available. Go to settings to update!", ScreenNotification.NotificationType.Warning, null, 5);
+                    ScreenNotification.ShowNotification($"New timers available. Go to settings to update!", ScreenNotification.NotificationType.Warning, null, 3);
                 }
             }
             catch (Exception ex) {
@@ -477,6 +479,24 @@ namespace Charr.Timers_BlishHUD
             }
         }
 
+        public void ShowCustomTimerCategories() {
+            List<IGrouping<string, Encounter>> categories = _encounters.GroupBy(enc => enc.Category).ToList();
+            if (_sortCategorySetting.Value) {
+                categories.Sort((cat1, cat2) => {
+                    return cat1.Key.CompareTo(cat2.Key);
+                });
+            }
+            foreach (IGrouping<string, Encounter> category in categories) {
+                MenuItem cat = timerCategories.AddMenuItem(category.Key);
+                cat.Click += delegate {
+                    timerPanel.FilterChildren<TimerDetails>(db =>
+                        string.Equals(db.Encounter.Category, category.Key));
+                    _displayedTimerDetails = _allTimerDetails.Where(db =>
+                        string.Equals(db.Encounter.Category, category.Key)).ToList();
+                };
+            }
+        }
+
         private Panel BuildSettingsPanel(Rectangle panelBounds) {
             // 1. Timers tab
             Panel mainPanel = new Panel {
@@ -504,13 +524,13 @@ namespace Charr.Timers_BlishHUD
                         _alertContainerLocationSetting.Value = _alertContainer.Location;
                         break;
                     case ControlFlowDirection.SingleRightToLeft:
-                        _alertContainerLocationSetting.Value = new Point(_alertContainer.Right, _alertContainer.Location.Y);
+                        _alertContainerLocationSetting.Value =
+                            new Point(_alertContainer.Right, _alertContainer.Location.Y);
                         break;
                     case ControlFlowDirection.SingleBottomToTop:
                         _alertContainerLocationSetting.Value = new Point(_alertContainer.Location.X, _alertContainer.Bottom);
                         break;
                 }
-                Debug.WriteLine("Dragged: " + _alertContainerLocationSetting.Value.X + " " + _alertContainerLocationSetting.Value.Y);
             };
 
             TextBox searchBox = new TextBox {
@@ -529,7 +549,7 @@ namespace Charr.Timers_BlishHUD
                 ShowBorder = true
             };
 
-            FlowPanel timerPanel = new FlowPanel {
+            timerPanel = new FlowPanel {
                 Parent = mainPanel,
                 Location = new Point(menuSection.Right + Panel.MenuStandard.ControlOffset.X,
                     Panel.MenuStandard.ControlOffset.Y),
@@ -695,6 +715,7 @@ namespace Charr.Timers_BlishHUD
                     _encountersLoaded = true;
                     noTimersPanel.Dispose();
                     ShowTimerEntries(timerPanel);
+                    ShowCustomTimerCategories();
                 };
             }
 
@@ -1116,7 +1137,7 @@ namespace Charr.Timers_BlishHUD
             ShowTimerEntries(timerPanel);
 
             // 3. Categories
-            Menu timerCategories = new Menu {
+            timerCategories = new Menu {
                 Size = menuSection.ContentRegion.Size,
                 MenuItemHeight = 40,
                 Parent = menuSection,
@@ -1154,21 +1175,7 @@ namespace Charr.Timers_BlishHUD
                 };
             }
 
-            List<IGrouping<string, Encounter>> categories = _encounters.GroupBy(enc => enc.Category).ToList();
-            if (_sortCategorySetting.Value) {
-                categories.Sort((cat1, cat2) => {
-                    return cat1.Key.CompareTo(cat2.Key);
-                });
-            }
-            foreach (IGrouping<string, Encounter> category in categories) {
-                MenuItem cat = timerCategories.AddMenuItem(category.Key);
-                cat.Click += delegate {
-                    timerPanel.FilterChildren<TimerDetails>(db =>
-                        string.Equals(db.Encounter.Category, category.Key));
-                    _displayedTimerDetails = _allTimerDetails.Where(db =>
-                        string.Equals(db.Encounter.Category, category.Key)).ToList();
-                };
-            }
+            ShowCustomTimerCategories();
 
             // Enable and Disable all button event handlers
             enableAllButton.Click += delegate {
