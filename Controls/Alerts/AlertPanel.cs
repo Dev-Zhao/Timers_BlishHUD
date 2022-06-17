@@ -160,10 +160,6 @@ namespace Charr.Timers_BlishHUD.Controls
                     base.Dispose();
                 }
             });
-
-            GameService.Input.Mouse.LeftMouseButtonPressed += delegate (Object sender, MouseEventArgs e) {
-                ((AlertContainer)this.Parent).HandleLeftMouseButtonReleased(e);
-            };
         }
 
         protected override CaptureType CapturesInput() {

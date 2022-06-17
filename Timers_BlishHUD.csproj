@@ -146,6 +146,7 @@
     <Compile Include="Pathing\Entities\TrailEffect.cs" />
     <Compile Include="Resources.cs" />
     <Compile Include="State\Alert.cs" />
+    <Compile Include="State\Update.cs" />
     <Compile Include="State\Direction.cs" />
     <Compile Include="State\Encounter.cs" />
     <Compile Include="State\Marker.cs" />

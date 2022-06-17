@@ -22,6 +22,7 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Runtime.Remoting.Channels;
 using System.Threading.Tasks;
+using Charr.Timers_BlishHUD.State;
 using Microsoft.IdentityModel.Tokens;
 using Octokit;
 using SharpDX.Direct3D11;
@@ -90,7 +91,7 @@ namespace Charr.Timers_BlishHUD
         private EventHandler<ValueEventArgs<int>> _onNewMapLoaded;
 
         // Settings
-        private SettingEntry<DateTimeOffset> _lastTimersUpdate;
+        private SettingEntry<Update> _lastTimersUpdate;
         private SettingEntry<bool> _showDebugSetting;
         public SettingEntry<bool> _debugModeSetting;
         private Dictionary<String, SettingEntry<bool>> _encounterEnableSettings;
@@ -111,6 +112,7 @@ namespace Charr.Timers_BlishHUD
         public SettingEntry<float> _alertMoveDelaySetting;
         public SettingEntry<float> _alertFadeDelaySetting;
         public SettingEntry<bool> _alertFillDirection;
+        public Update update = new Update();
 
         public TimerLoader timerLoader;
 
@@ -125,7 +127,7 @@ namespace Charr.Timers_BlishHUD
 
         protected override void DefineSettings(SettingCollection settings) {
             if (!settings.TryGetSetting("LastTimersUpdate", out _lastTimersUpdate)) {
-                _lastTimersUpdate = settings.DefineSetting("LastTimersUpdate", DateTimeOffset.MinValue,
+                _lastTimersUpdate = settings.DefineSetting("LastTimersUpdate", new Update(),
                     "Last Timers Update", "Date of last timers update");
             }
 
@@ -152,7 +154,7 @@ namespace Charr.Timers_BlishHUD
             _alertSizeSetting = _alertSettingCollection.DefineSetting("AlertSize", AlertType.BigWigStyle);
             _alertDisplayOrientationSetting =
                 _alertSettingCollection.DefineSetting("AlertDisplayOrientation", ControlFlowDirection.SingleTopToBottom);
-            _alertContainerLocationSetting = _alertSettingCollection.DefineSetting("AlertContainerLocation", Point.Zero);
+            _alertContainerLocationSetting = _alertSettingCollection.DefineSetting("AlertContainerLocation", new Point(GameService.Graphics.WindowWidth - GameService.Graphics.WindowWidth / 4, GameService.Graphics.WindowHeight / 2));
             _alertMoveDelaySetting = _alertSettingCollection.DefineSetting("AlertMoveSpeed", 1.0f);
             _alertFadeDelaySetting = _alertSettingCollection.DefineSetting("AlertFadeSpeed", 1.0f);
             _alertFillDirection = _alertSettingCollection.DefineSetting("FillDirection", true);
@@ -378,15 +380,30 @@ namespace Charr.Timers_BlishHUD
             AddEncounter(enc);
         }
 
+        [Conditional("DEBUG")]
+        private async void ShowLatestRelease() { 
+            var github = new GitHubClient(new ProductHeaderValue("BlishHUD_Timers"));
+            var latestRelease = await github.Repository.Release.GetLatest("QuitarHero", "Hero-Timers");
+            Debug.WriteLine(latestRelease.CreatedAt);
+        }
+
         protected override async Task LoadAsync() {
             string timerDirectory = DirectoriesManager.GetFullDirectoryPath("timers");
 
             try {
-                var github = new GitHubClient(new ProductHeaderValue("BlishHUD_Timers"));
-                var latestRelease = await github.Repository.Release.GetLatest("QuitarHero", "Hero-Timers");
-                if (latestRelease.CreatedAt > _lastTimersUpdate.Value) {
-                    _timersNeedUpdate = true;
-                    ScreenNotification.ShowNotification($"New timers available. Go to settings to update!", ScreenNotification.NotificationType.Warning, null, 3);
+                ShowLatestRelease();
+                using (WebClient wc = new WebClient()) {
+                    var json = new WebClient().DownloadString("https://bhm.blishhud.com/Charr.Timers_BlishHUD/timer_update.json");
+                    var updates = JsonConvert.DeserializeObject<List<Update>>(json, _jsonSettings);
+                    if (updates == null || updates.Count == 0) {
+                        throw new ArgumentNullException();
+                    }
+
+                    update = updates[0];
+                    if (update.CreatedAt > _lastTimersUpdate.Value.CreatedAt) {
+                        _timersNeedUpdate = true;
+                        ScreenNotification.ShowNotification($"New timers available. Go to settings to update!", ScreenNotification.NotificationType.Warning, null, 3);
+                    }
                 }
             }
             catch (Exception ex) {
@@ -655,11 +672,7 @@ namespace Charr.Timers_BlishHUD
                         }
                         isDownloading = true;
 
-                        var github = new GitHubClient(new ProductHeaderValue("BlishHUD_Timers"));
-                        var latestRelease = await github.Repository.Release.GetLatest("QuitarHero", "Hero-Timers");
-                        var assetId = latestRelease.Assets[0].Id;
-                        var downloadUrl =
-                            new Uri($"https://api.github.com/repos/QuitarHero/Hero-Timers/releases/assets/{assetId}");
+                        var downloadUrl = update.URL;
 
                         // Download with WebClient
                         using var webClient = new WebClient();
@@ -667,20 +680,21 @@ namespace Charr.Timers_BlishHUD
                         webClient.Headers.Add(HttpRequestHeader.Accept, "application/octet-stream");
 
                         // Download the file
-                        webClient.DownloadFileAsync(downloadUrl, $"{DirectoriesManager.GetFullDirectoryPath("timers")}/{latestRelease.Assets[0].Name}");
+                        webClient.DownloadFileAsync(downloadUrl, $"{DirectoriesManager.GetFullDirectoryPath("timers")}/{update.name}");
                         restartBlishHudAfter.Text = "Downloading latest version of timers, please wait...";
                         webClient.DownloadFileCompleted += delegate (Object sender, AsyncCompletedEventArgs eventArgs) {
                             if (eventArgs.Error != null) {
                                 notice.Text =
-                                    "Download failed: API Rate Limit Reached!";
-                                ScreenNotification.ShowNotification($"Failed to download timers: API Rate Limit Reached!", ScreenNotification.NotificationType.Error, null, 3);
+                                    "Download failed: "  + eventArgs.Error.Message;
+                                Logger.Error("Download failed: " + eventArgs.Error.Message);
+                                ScreenNotification.ShowNotification($"Failed to download timers: " + eventArgs.Error.Message, ScreenNotification.NotificationType.Error, null, 3);
                                 restartBlishHudAfter.Text =
                                     "Wait and try downloading again\nOr manually download and place them in your timers folder.";
                                 downloadPanel.Width = 400;
                                 manualDownload.Visible = true;
                                 manualDownload.Click += delegate {
                                     Process.Start("https://github.com/QuitarHero/Hero-Timers/releases/latest/download/Hero-Timers.zip");
-                                    _lastTimersUpdate.Value = latestRelease.CreatedAt;
+                                    _lastTimersUpdate.Value = update;
                                 };
                                 downloadPanel.RecalculateLayout();
                             }
@@ -689,7 +703,7 @@ namespace Charr.Timers_BlishHUD
                                 restartBlishHudAfter.Text =
                                     "Download complete, click Continue to enable them.";
                                 ScreenNotification.ShowNotification($"Timers updated!", ScreenNotification.NotificationType.Info, null, 3);
-                                _lastTimersUpdate.Value = latestRelease.CreatedAt;
+                                _lastTimersUpdate.Value = update;
                                 downloadPanel.Dispose();
                                 skipUpdate.Text = "Continue";
                             }

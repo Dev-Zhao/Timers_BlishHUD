@@ -60,10 +60,6 @@ namespace Charr.Timers_BlishHUD.Controls.BigWigs
         public BigWigAlert() {
             this.Size = new Point(DEFAULT_WIDTH, ICON_SIZE + TOP_BORDER + BOTTOM_BORDER);
             this.Icon = new AsyncTexture2D(ContentService.Textures.Error);
-
-            GameService.Input.Mouse.LeftMouseButtonPressed += delegate (Object sender, MouseEventArgs e) {
-                ((AlertContainer)this.Parent).HandleLeftMouseButtonReleased(e);
-            };
         }
 
         // BOUNDS
