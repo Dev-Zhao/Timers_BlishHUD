@@ -28,12 +28,15 @@ namespace Charr.Timers_BlishHUD.State
         // Private members
         private bool _activated = false;
         private SpeechSynthesizer _synthesizer;
+        private int timeIndex = 0;
 
         public string Initialize() {
             if (Text.IsNullOrEmpty())
                 return Name + " invalid text property";
             if (Timestamps.IsNullOrEmpty())
                 return Name + " invalid timestamps property";
+
+            Timestamps.Sort();
 
             _synthesizer = new SpeechSynthesizer();
             _synthesizer.Rate = -2;
@@ -58,11 +61,10 @@ namespace Charr.Timers_BlishHUD.State
         public void Update(float elapsedTime) {
             if (!_activated || TimersModule.ModuleInstance._hideSoundsSetting.Value) return;
 
-            foreach (float time in Timestamps) {
-                if (elapsedTime >= time && elapsedTime <= time + TimersModule.ModuleInstance.Resources.TICKINTERVAL) {
-                    _synthesizer.SpeakAsync(Text);
-                    break;
-                }
+
+            if (timeIndex < Timestamps.Count && elapsedTime >= Timestamps[timeIndex]) {
+                _synthesizer.SpeakAsync(Text);
+                timeIndex++;
             }
         }
     }
