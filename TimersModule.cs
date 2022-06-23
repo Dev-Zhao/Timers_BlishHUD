@@ -22,6 +22,7 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Runtime.Remoting.Channels;
 using System.Threading.Tasks;
+using Blish_HUD.Content;
 using Charr.Timers_BlishHUD.State;
 using Microsoft.IdentityModel.Tokens;
 using Octokit;
@@ -384,7 +385,9 @@ namespace Charr.Timers_BlishHUD
         private async void ShowLatestRelease() { 
             var github = new GitHubClient(new ProductHeaderValue("BlishHUD_Timers"));
             var latestRelease = await github.Repository.Release.GetLatest("QuitarHero", "Hero-Timers");
+            var allReleases = await github.Repository.Release.GetAll("QuitarHero", "Hero-Timers");
             Debug.WriteLine(latestRelease.CreatedAt);
+            Debug.WriteLine(allReleases[1].CreatedAt);
         }
 
         protected override async Task LoadAsync() {
@@ -686,6 +689,29 @@ namespace Charr.Timers_BlishHUD
                             if (File.Exists($"{DirectoriesManager.GetFullDirectoryPath("timers")}/Hero-Timers.zip")) {
                                 File.Delete($"{DirectoriesManager.GetFullDirectoryPath("timers")}/Hero-Timers.zip");
                             }
+
+                            String[] filePaths = Directory.GetFiles(DirectoriesManager.GetFullDirectoryPath("timers"), "*.bhtimer",
+                                SearchOption.AllDirectories);
+                            var directoryReader = new DirectoryReader(DirectoriesManager.GetFullDirectoryPath("timers"));
+                            var directoryResourceManager = new PathableResourceManager(directoryReader);
+
+                            foreach (String filePath in filePaths) {
+                                DateTimeOffset lastModified = Directory.GetLastWriteTimeUtc(filePath);
+                                
+                                if (lastModified <= DateTimeOffset.Parse("5/2/2022 5:28:21 PM +00:00")) {
+                                    var encounter = ParseEncounter(new TimerStream(directoryReader.GetFileStream(filePath),
+                                        directoryResourceManager, filePath));
+                                    if (encounter.Author == "QuitarHero.1645") {
+                                        if (File.Exists(filePath)) {
+                                            File.Delete(filePath);
+                                        }
+                                    }
+                                    encounter.Dispose();
+                                }
+                            }
+                            directoryReader.Dispose();
+                            directoryResourceManager.Dispose();
+
                             if (eventArgs.Error != null) {
                                 notice.Text =
                                     "Download failed: "  + eventArgs.Error.Message;
