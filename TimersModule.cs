@@ -334,7 +334,7 @@ namespace Charr.Timers_BlishHUD
                 enc.Description = ex.Message;
                 //_debug.Text = ex.Message;
                 _errorCaught = true;
-                Logger.Error(enc.Name + " Timer parsing failure: " + ex.Message);
+                //Logger.Error(enc.Name + " Timer parsing failure: " + ex.Message);
             }
             catch (Exception ex) {
                 enc?.Dispose();
@@ -344,7 +344,7 @@ namespace Charr.Timers_BlishHUD
                 };
                 //_debug.Text = ex.Message;
                 _errorCaught = true;
-                Logger.Error("File Path: " + (timerStream.FileName + "\n\nInvalid JSON format: " + ex.Message));
+                //Logger.Error("File Path: " + (timerStream.FileName + "\n\nInvalid JSON format: " + ex.Message));
             }
             finally {
                 enc.IsFromZip = timerStream.IsFromZip;
@@ -425,41 +425,6 @@ namespace Charr.Timers_BlishHUD
         }
 
         private void ShowTimerEntries(Panel timerPanel) {
-            foreach (Encounter enc in _invalidEncounters) {
-                TimerDetails entry = new TimerDetails {
-                    Parent = timerPanel,
-                    Encounter = enc,
-                };
-                entry.Initialize();
-
-                entry.PropertyChanged += delegate { ResetActivatedEncounters(); };
-
-                _allTimerDetails.Add(entry);
-
-
-                entry.ReloadClicked += delegate (Object sender, Encounter enc) {
-                    if (enc.IsFromZip) {
-                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
-                            Encounter enc = ParseEncounter(timerStream);
-                            UpdateEncounter(enc);
-                            entry.Encounter?.Dispose();
-                            entry.Encounter = enc;
-                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
-                        }, enc.ZipFile, enc.TimerFile);
-                    }
-                    else {
-                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
-                            Encounter enc = ParseEncounter(timerStream);
-                            UpdateEncounter(enc);
-                            entry.Encounter?.Dispose();
-                            entry.Encounter = enc;
-                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
-                        }, enc.TimerFile);
-                    }
-                };
-
-            }
-
             foreach (Encounter enc in _encounters) {
                 TimerDetails entry = new TimerDetails {
                     Parent = timerPanel,
@@ -493,6 +458,41 @@ namespace Charr.Timers_BlishHUD
                         }, enc.TimerFile);
                     }
                 };
+            }
+
+            foreach (Encounter enc in _invalidEncounters) {
+                TimerDetails entry = new TimerDetails {
+                    Parent = timerPanel,
+                    Encounter = enc,
+                };
+                entry.Initialize();
+
+                entry.PropertyChanged += delegate { ResetActivatedEncounters(); };
+
+                _allTimerDetails.Add(entry);
+
+
+                entry.ReloadClicked += delegate (Object sender, Encounter enc) {
+                    if (enc.IsFromZip) {
+                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
+                            Encounter enc = ParseEncounter(timerStream);
+                            UpdateEncounter(enc);
+                            entry.Encounter?.Dispose();
+                            entry.Encounter = enc;
+                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
+                        }, enc.ZipFile, enc.TimerFile);
+                    }
+                    else {
+                        timerLoader.ReloadFile(delegate (TimerStream timerStream) {
+                            Encounter enc = ParseEncounter(timerStream);
+                            UpdateEncounter(enc);
+                            entry.Encounter?.Dispose();
+                            entry.Encounter = enc;
+                            ScreenNotification.ShowNotification($"Encounter <{enc.Name}> reloaded!", ScreenNotification.NotificationType.Info, enc.Icon, 3);
+                        }, enc.TimerFile);
+                    }
+                };
+
             }
         }
 
@@ -1183,14 +1183,11 @@ namespace Charr.Timers_BlishHUD
                     (db.Encounter.Map == GameService.Gw2Mumble.CurrentMap.Id)).ToList();
             };
 
-            if (_encounters.Any(e => e.State == Encounter.EncounterStates.Error)) {
-                MenuItem invalidTimers = timerCategories.AddMenuItem("Invalid Timers");
-
-                invalidTimers.Click += delegate {
-                    timerPanel.FilterChildren<TimerDetails>(db => db.Encounter.State == Encounter.EncounterStates.Error);
-                    _displayedTimerDetails = _allTimerDetails.Where(db => db.Encounter.State == Encounter.EncounterStates.Error).ToList();
-                };
-            }
+            MenuItem invalidTimers = timerCategories.AddMenuItem("Invalid Timers");
+            invalidTimers.Click += delegate {
+                timerPanel.FilterChildren<TimerDetails>(db => db.Encounter.State == Encounter.EncounterStates.Error);
+                _displayedTimerDetails = _allTimerDetails.Where(db => db.Encounter.State == Encounter.EncounterStates.Error).ToList();
+            };
 
             ShowCustomTimerCategories();
 

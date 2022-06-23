@@ -193,7 +193,7 @@ namespace Charr.Timers_BlishHUD.Models
         public void WaitForStart() {
             StartTrigger?.Enable();
             Debug.WriteLine(Name + " phase waiting");
-            Logger.Warn(Name + " phase waiting");
+            //Logger.Warn(Name + " phase waiting");
         }
 
         public void Start() {
@@ -207,7 +207,7 @@ namespace Charr.Timers_BlishHUD.Models
 
             Active = true;
             Debug.WriteLine(Name + " phase starting");
-            Logger.Warn(Name + " phase starting");
+            //Logger.Warn(Name + " phase starting");
         }
 
         public void Stop() {
@@ -252,7 +252,7 @@ namespace Charr.Timers_BlishHUD.Models
             Sounds?.ForEach(voice => voice.Stop());
             Active = false;
 
-            Logger.Warn(Name + " phase stopping");
+            //Logger.Warn(Name + " phase stopping");
         }
 
         public void Update(float elapsedTime) {
