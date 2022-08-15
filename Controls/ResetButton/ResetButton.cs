@@ -118,17 +118,10 @@ namespace Charr.Timers_BlishHUD.Controls.ResetButton
             {
                 var nOffset = Input.Mouse.Position - _dragStart;
                 var newSize = _resizeStart + nOffset;
-                var sqrSize = Math.Min(newSize.X, newSize.Y);
 
-                this.Size = new Point(MathHelper.Clamp(sqrSize, 50, MaxSize.X), MathHelper.Clamp(sqrSize, 25, MaxSize.Y));
+                this.Size = new Point(MathHelper.Clamp(newSize.X, 50, MaxSize.X), MathHelper.Clamp(newSize.Y, 25, MaxSize.Y));
                 this.BoundsChanged?.Invoke(null, null);
             }
-        }
-
-        protected virtual Point HandleWindowResize(Point newSize)
-        {
-            return new Point(MathHelper.Clamp(newSize.X, this.ContentRegion.X, 1024),
-                             MathHelper.Clamp(newSize.Y, this.ContentRegion.Y, 1024));
         }
 
         protected override void OnMouseMoved(MouseEventArgs e)
