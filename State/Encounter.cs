@@ -140,6 +140,13 @@ namespace Charr.Timers_BlishHUD.Models
             State = EncounterStates.Ready;
         }
 
+        public void Reset()
+        {
+            State = EncounterStates.Error;
+            Stop();
+            Activate();
+        }
+
         public void Activate() {
             if (!Enabled || State > EncounterStates.Ready) return;
 
