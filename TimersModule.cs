@@ -28,6 +28,7 @@ using Microsoft.IdentityModel.Tokens;
 using Octokit;
 using SharpDX.Direct3D11;
 using Label = Blish_HUD.Controls.Label;
+using Charr.Timers_BlishHUD.Controls.ResetButton;
 
 namespace Charr.Timers_BlishHUD
 {
@@ -62,6 +63,7 @@ namespace Charr.Timers_BlishHUD
         public AlertContainer _alertContainer;
         private StandardWindow _alertSettingsWindow;
         private List<IAlertPanel> _testAlertPanels;
+        private ResetButton _resetButton;
 
         // Controls - Tab
         private WindowTab _timersTab;
@@ -99,6 +101,11 @@ namespace Charr.Timers_BlishHUD
         private SettingEntry<bool> _sortCategorySetting;
         public SettingCollection _timerSettingCollection;
         public SettingEntry<KeyBinding>[] _keyBindSettings;
+
+        public SettingEntry<bool> _showResetTimerButton;
+        public SettingEntry<Point> _resetTimerButtonLocationSetting;
+        public SettingEntry<Point> _resetTimerButtonSizeSetting;
+        public SettingEntry<KeyBinding> _resetTimerHotKeySetting;
 
         private SettingCollection _alertSettingCollection;
         public SettingEntry<bool> _lockAlertContainerSetting;
@@ -139,6 +146,18 @@ namespace Charr.Timers_BlishHUD
             _sortCategorySetting = settings.DefineSetting("SortByCategory", false, "Sort Categories",
                 "When enabled, categories from loaded timer files are sorted in alphanumerical order.\nOtherwise, categories are in the order they are loaded.\nThe module needs to be restarted to take effect."); ;
             _timerSettingCollection = settings.AddSubCollection("EnabledTimers", false);
+
+            //Reset Timer Settings
+            _showResetTimerButton = settings.DefineSetting("Show Reset Button", true);
+            _showResetTimerButton.SettingChanged += _showResetTimerButton_SettingChanged;
+            _resetTimerHotKeySetting = settings.DefineSetting("Reset Active Timer", new KeyBinding());
+            _resetTimerHotKeySetting.Value.Enabled = true;
+            _resetTimerHotKeySetting.Value.Activated += ResetHotkey_Activated;
+
+            var _internalSettings = settings.AddSubCollection("Internal Settings", false);
+            _resetTimerButtonLocationSetting = _internalSettings.DefineSetting("Reset Timer Button Location", new Point(150, 150));
+            _resetTimerButtonSizeSetting = _internalSettings.DefineSetting("Reset Timer Button Size", new Point(64, 64));
+
             _keyBindSettings = new SettingEntry<KeyBinding>[5];
             for (int i = 0; i < 5; i++) {
                 _keyBindSettings[i] = settings.DefineSetting("Trigger Key " + i, new KeyBinding(), "Trigger Key " + i,
@@ -159,6 +178,19 @@ namespace Charr.Timers_BlishHUD
             _alertMoveDelaySetting = _alertSettingCollection.DefineSetting("AlertMoveSpeed", 1.0f);
             _alertFadeDelaySetting = _alertSettingCollection.DefineSetting("AlertFadeSpeed", 1.0f);
             _alertFillDirection = _alertSettingCollection.DefineSetting("FillDirection", true);
+        }
+
+        private void _showResetTimerButton_SettingChanged(object sender, ValueChangedEventArgs<bool> e)
+        {
+            _resetButton?.ToggleVisibility();
+        }
+
+        private void ResetHotkey_Activated(object sender, EventArgs e)
+        {
+            foreach (Encounter enc in _activeEncounters)
+            {
+                enc.Reset();
+            }
         }
 
         private void SettingsUpdateShowDebug(object sender = null, EventArgs e = null) {
@@ -421,10 +453,34 @@ namespace Charr.Timers_BlishHUD
 
             _tabPanel = BuildSettingsPanel(GameService.Overlay.BlishHudWindow.ContentRegion);
             _onNewMapLoaded = delegate { ResetActivatedEncounters(); };
+            _resetButton = new ResetButton()
+            {
+                Parent = GameService.Graphics.SpriteScreen,
+                Size = _resetTimerButtonSizeSetting.Value,
+                Location = _resetTimerButtonLocationSetting.Value,
+                Visible = _showResetTimerButton.Value,
+            };
+            _resetButton.ButtonClicked += _resetButton_ButtonClicked;
+            _resetButton.BoundsChanged += _resetButton_BoundsChanged;
+
             ResetActivatedEncounters();
             SettingsUpdateHideAlerts();
             SettingsUpdateHideDirections();
             SettingsUpdateHideMarkers();
+        }
+
+        private void _resetButton_BoundsChanged(object sender, EventArgs e)
+        {
+            _resetTimerButtonLocationSetting.Value = _resetButton.Location;
+            _resetTimerButtonSizeSetting.Value = _resetButton.Size;
+        }
+
+        private void _resetButton_ButtonClicked(object sender, EventArgs e)
+        {
+            foreach (Encounter enc in _activeEncounters)
+            {
+                enc.Reset();
+            }
         }
 
         private void ShowTimerEntries(Panel timerPanel) {
@@ -1297,6 +1353,9 @@ namespace Charr.Timers_BlishHUD
             _alertContainerLocationSetting.SettingChanged -= SettingsUpdateAlertContainerLocation;
             _alertMoveDelaySetting.SettingChanged -= SettingsUpdateAlertMoveDelay;
             _alertFadeDelaySetting.SettingChanged -= SettingsUpdateAlertFadeDelay;
+
+            //Cleanup Reset Button
+            _resetButton?.Dispose();
 
             // Cleanup tab
             GameService.Overlay.BlishHudWindow.RemoveTab(_timersTab);
