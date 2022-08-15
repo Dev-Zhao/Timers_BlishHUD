@@ -187,6 +187,11 @@ namespace Charr.Timers_BlishHUD
 
         private void ResetHotkey_Activated(object sender, EventArgs e)
         {
+            ResetActiveEncounters();
+        }
+
+        private void ResetActiveEncounters()
+        {
             foreach (Encounter enc in _activeEncounters)
             {
                 enc.Reset();
@@ -477,10 +482,7 @@ namespace Charr.Timers_BlishHUD
 
         private void _resetButton_ButtonClicked(object sender, EventArgs e)
         {
-            foreach (Encounter enc in _activeEncounters)
-            {
-                enc.Reset();
-            }
+            ResetActiveEncounters();
         }
 
         private void ShowTimerEntries(Panel timerPanel) {
