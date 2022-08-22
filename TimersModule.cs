@@ -1,4 +1,5 @@
 ﻿using Blish_HUD;
+using Blish_HUD.Content;
 using Blish_HUD.Controls;
 using Blish_HUD.Input;
 using Blish_HUD.Modules;
@@ -6,11 +7,14 @@ using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
 using Charr.Timers_BlishHUD.Controls;
 using Charr.Timers_BlishHUD.Controls.BigWigs;
+using Charr.Timers_BlishHUD.Controls.ResetButton;
 using Charr.Timers_BlishHUD.IO;
 using Charr.Timers_BlishHUD.Models;
 using Charr.Timers_BlishHUD.Pathing.Content;
+using Charr.Timers_BlishHUD.State;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
+using Octokit;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,17 +22,10 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Net;
-using System.Runtime.Remoting.Channels;
 using System.Threading.Tasks;
-using Blish_HUD.Content;
-using Charr.Timers_BlishHUD.State;
-using Microsoft.IdentityModel.Tokens;
-using Octokit;
-using SharpDX.Direct3D11;
+
 using Label = Blish_HUD.Controls.Label;
-using Charr.Timers_BlishHUD.Controls.ResetButton;
 
 namespace Charr.Timers_BlishHUD
 {
@@ -115,8 +112,8 @@ namespace Charr.Timers_BlishHUD
         public SettingEntry<bool> _hideMarkersSetting;
         public SettingEntry<bool> _hideSoundsSetting;
         public SettingEntry<AlertType> _alertSizeSetting;
-        public SettingEntry<ControlFlowDirection> _alertDisplayOrientationSetting;
-        private SettingEntry<Point> _alertContainerLocationSetting;
+        public SettingEntry<AlertFlowDirection> _alertDisplayOrientationSetting;
+        public SettingEntry<Point> _alertContainerLocationSetting;
         public SettingEntry<float> _alertMoveDelaySetting;
         public SettingEntry<float> _alertFadeDelaySetting;
         public SettingEntry<bool> _alertFillDirection;
@@ -173,9 +170,9 @@ namespace Charr.Timers_BlishHUD
             _centerAlertContainerSetting = _alertSettingCollection.DefineSetting("CenterAlertContainer", true);
             _alertSizeSetting = _alertSettingCollection.DefineSetting("AlertSize", AlertType.BigWigStyle);
             _alertDisplayOrientationSetting =
-                _alertSettingCollection.DefineSetting("AlertDisplayOrientation", ControlFlowDirection.SingleTopToBottom);
+                _alertSettingCollection.DefineSetting("AlertDisplayOrientation", AlertFlowDirection.TopToBottom);
             _alertContainerLocationSetting = _alertSettingCollection.DefineSetting("AlertContainerLocation", new Point(GameService.Graphics.WindowWidth - GameService.Graphics.WindowWidth / 4, GameService.Graphics.WindowHeight / 2));
-            _alertMoveDelaySetting = _alertSettingCollection.DefineSetting("AlertMoveSpeed", 1.0f);
+            _alertMoveDelaySetting = _alertSettingCollection.DefineSetting("AlertMoveSpeed", 0.75f);
             _alertFadeDelaySetting = _alertSettingCollection.DefineSetting("AlertFadeSpeed", 1.0f);
             _alertFillDirection = _alertSettingCollection.DefineSetting("FillDirection", true);
         }
@@ -224,11 +221,8 @@ namespace Charr.Timers_BlishHUD
                     _alertContainer?.Hide();
                 }
                 else {
-                    _alertContainer.UpdateDisplay();
                     _alertContainer?.Show();
                 }
-
-                _alertContainer.AutoShow = !_hideAlertsSetting.Value;
             }
         }
 
@@ -267,24 +261,6 @@ namespace Charr.Timers_BlishHUD
 
         private void SettingsUpdateAlertDisplayOrientation(object sender = null, EventArgs e = null) {
             _alertContainer.FlowDirection = _alertDisplayOrientationSetting.Value;
-            _alertContainer.UpdateDisplay();
-        }
-
-        private void SettingsUpdateAlertContainerLocation(object sender = null, EventArgs e = null) {
-            /*switch (_alertDisplayOrientationSetting.Value) {
-                case ControlFlowDirection.SingleLeftToRight:
-                case ControlFlowDirection.SingleTopToBottom:
-                    _alertContainer.Location = _alertContainerLocationSetting.Value;
-                    break;
-                case ControlFlowDirection.SingleRightToLeft:
-                    _alertContainer.Location =
-                        new Point(_alertContainerLocationSetting.Value.X - _alertContainer.Width, _alertContainerLocationSetting.Value.Y);
-                    break;
-                case ControlFlowDirection.SingleBottomToTop:
-                    _alertContainer.Location =
-                        new Point(_alertContainerLocationSetting.Value.X, _alertContainerLocationSetting.Value.Y - _alertContainer.Height);
-                    break;
-            }*/
         }
 
         private void SettingsUpdateAlertMoveDelay(object sender = null, EventArgs e = null) {
@@ -333,7 +309,6 @@ namespace Charr.Timers_BlishHUD
             _hideMarkersSetting.SettingChanged += SettingsUpdateHideMarkers;
             _alertSizeSetting.SettingChanged += SettingsUpdateAlertSize;
             _alertDisplayOrientationSetting.SettingChanged += SettingsUpdateAlertDisplayOrientation;
-            _alertContainerLocationSetting.SettingChanged += SettingsUpdateAlertContainerLocation;
             _alertMoveDelaySetting.SettingChanged += SettingsUpdateAlertMoveDelay;
             _alertFadeDelaySetting.SettingChanged += SettingsUpdateAlertFadeDelay;
         }
@@ -594,22 +569,6 @@ namespace Charr.Timers_BlishHUD
                 Visible = !_hideAlertsSetting.Value
             };
             SettingsUpdateAlertSize();
-            SettingsUpdateAlertContainerLocation();
-            _alertContainer.ContainerDragged += delegate {
-                switch (_alertDisplayOrientationSetting.Value) {
-                    case ControlFlowDirection.SingleLeftToRight:
-                    case ControlFlowDirection.SingleTopToBottom:
-                        _alertContainerLocationSetting.Value = _alertContainer.Location;
-                        break;
-                    case ControlFlowDirection.SingleRightToLeft:
-                        _alertContainerLocationSetting.Value =
-                            new Point(_alertContainer.Right, _alertContainer.Location.Y);
-                        break;
-                    case ControlFlowDirection.SingleBottomToTop:
-                        _alertContainerLocationSetting.Value = new Point(_alertContainer.Location.X, _alertContainer.Bottom);
-                        break;
-                }
-            };
 
             TextBox searchBox = new TextBox {
                 Parent = mainPanel,
@@ -1004,16 +963,16 @@ namespace Charr.Timers_BlishHUD
             alertDisplayOrientationDropdown.Items.Add("Bottom to Top");
 
             switch (_alertDisplayOrientationSetting.Value) {
-                case ControlFlowDirection.SingleLeftToRight:
+                case AlertFlowDirection.LeftToRight:
                     alertDisplayOrientationDropdown.SelectedItem = "Left to Right";
                     break;
-                case ControlFlowDirection.SingleRightToLeft:
+                case AlertFlowDirection.RightToLeft:
                     alertDisplayOrientationDropdown.SelectedItem = "Right to Left";
                     break;
-                case ControlFlowDirection.SingleTopToBottom:
+                case AlertFlowDirection.TopToBottom:
                     alertDisplayOrientationDropdown.SelectedItem = "Top to Bottom";
                     break;
-                case ControlFlowDirection.SingleBottomToTop:
+                case AlertFlowDirection.BottomToTop:
                     alertDisplayOrientationDropdown.SelectedItem = "Bottom to Top";
                     break;
             }
@@ -1021,16 +980,16 @@ namespace Charr.Timers_BlishHUD
             alertDisplayOrientationDropdown.ValueChanged += delegate {
                 switch (alertDisplayOrientationDropdown.SelectedItem) {
                     case "Left to Right":
-                        _alertDisplayOrientationSetting.Value = ControlFlowDirection.SingleLeftToRight;
+                        _alertDisplayOrientationSetting.Value = AlertFlowDirection.LeftToRight;
                         break;
                     case "Right to Left":
-                        _alertDisplayOrientationSetting.Value = ControlFlowDirection.SingleRightToLeft;
+                        _alertDisplayOrientationSetting.Value = AlertFlowDirection.RightToLeft;
                         break;
                     case "Top to Bottom":
-                        _alertDisplayOrientationSetting.Value = ControlFlowDirection.SingleTopToBottom;
+                        _alertDisplayOrientationSetting.Value = AlertFlowDirection.TopToBottom;
                         break;
                     case "Bottom to Top":
-                        _alertDisplayOrientationSetting.Value = ControlFlowDirection.SingleBottomToTop;
+                        _alertDisplayOrientationSetting.Value = AlertFlowDirection.BottomToTop;
                         break;
                 }
             };
@@ -1074,7 +1033,6 @@ namespace Charr.Timers_BlishHUD
                 ((Control)newAlert).Parent = _alertContainer;
 
                 _testAlertPanels.Add(newAlert);
-                _alertContainer.UpdateDisplay();
             };
 
             StandardButton clearTestAlertsButton = new StandardButton {
@@ -1086,9 +1044,9 @@ namespace Charr.Timers_BlishHUD
             clearTestAlertsButton.Width = (int)(clearTestAlertsButton.Width * 1.15);
 
             clearTestAlertsButton.Click += delegate {
+                _alertContainer.ClearChildren();
                 _testAlertPanels.ForEach(panel => panel.Dispose());
                 _testAlertPanels.Clear();
-                _alertContainer.UpdateDisplay();
             };
 
             alertSizeDropdown.Width = addTestAlertButton.Width + clearTestAlertsButton.Width +
@@ -1119,7 +1077,7 @@ namespace Charr.Timers_BlishHUD
 
             Label alertMoveDelayLabel = new Label {
                 Parent = _alertSettingsWindow,
-                Text = "Alert Move Delay",
+                Text = "Alert Animation Duration",
                 BasicTooltipText = "How many seconds alerts will take to reposition itself.",
                 AutoSizeWidth = true,
                 Location = new Point(
@@ -1352,7 +1310,6 @@ namespace Charr.Timers_BlishHUD
             _hideMarkersSetting.SettingChanged -= SettingsUpdateHideMarkers;
             _alertSizeSetting.SettingChanged -= SettingsUpdateAlertSize;
             _alertDisplayOrientationSetting.SettingChanged -= SettingsUpdateAlertDisplayOrientation;
-            _alertContainerLocationSetting.SettingChanged -= SettingsUpdateAlertContainerLocation;
             _alertMoveDelaySetting.SettingChanged -= SettingsUpdateAlertMoveDelay;
             _alertFadeDelaySetting.SettingChanged -= SettingsUpdateAlertFadeDelay;
 
