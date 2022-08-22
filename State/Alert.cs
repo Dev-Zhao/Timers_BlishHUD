@@ -126,7 +126,6 @@ namespace Charr.Timers_BlishHUD.Models
 
             ((Control)panel).Parent = TimersModule.ModuleInstance._alertContainer;
 
-            TimersModule.ModuleInstance._alertContainer.UpdateDisplay();
             return panel;
         }
 
