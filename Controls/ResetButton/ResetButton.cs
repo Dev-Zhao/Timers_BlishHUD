@@ -22,7 +22,8 @@ namespace Charr.Timers_BlishHUD.Controls.ResetButton
         private const int RESIZEHANDLE_SIZE = 16;
         protected Rectangle ResizeHandleBounds { get; private set; } = Rectangle.Empty;
         bool MouseOverResizeHandle;
-        public Point MaxSize = new Point(499, 499);
+        public int MinSize = 50;
+        public int MaxSize = 499;
 
         Point _resizeStart;
         Point _dragStart;
@@ -53,7 +54,7 @@ namespace Charr.Timers_BlishHUD.Controls.ResetButton
                 Text = "Reset Timer",
                 Parent = this,
                 BasicTooltipText = String.Format("Reset Active Timers" + Environment.NewLine + "Hold {0} to move and resize.", ModifierKey.ToString()),
-                Visible = false,
+                Visible = false
             };
 
             ImageButton = new Image()
@@ -119,7 +120,9 @@ namespace Charr.Timers_BlishHUD.Controls.ResetButton
                 var nOffset = Input.Mouse.Position - _dragStart;
                 var newSize = _resizeStart + nOffset;
 
-                this.Size = new Point(MathHelper.Clamp(newSize.X, 50, MaxSize.X), MathHelper.Clamp(newSize.Y, 25, MaxSize.Y));
+                var longestLength = Math.Max(newSize.X, newSize.Y);
+
+                this.Size = new Point(MathHelper.Clamp(longestLength, MinSize, MaxSize), MathHelper.Clamp(longestLength, MinSize, MaxSize));
                 this.BoundsChanged?.Invoke(null, null);
             }
         }

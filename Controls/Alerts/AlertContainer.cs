@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Blish_HUD;
+using Gw2Sharp.Models;
 
 namespace Charr.Timers_BlishHUD.Controls
 {
@@ -58,12 +59,13 @@ namespace Charr.Timers_BlishHUD.Controls
             set => SetProperty(ref _flowDirection, value, true);
         }
 
-        protected bool _lock = false;
-        public bool Lock {
-            get => _lock;
+        protected bool _locationLock = false;
+        public bool LocationLock {
+            get => _locationLock;
             set {
-                if (SetProperty(ref _lock, value)) {
-                    BackgroundColor = (_lock) ? Color.Transparent : new Color(Color.Black, 0.3f);
+                if (SetProperty(ref _locationLock, value)) {
+                    BackgroundColor = (_locationLock) ? Color.Transparent : new Color(Color.Black, 0.3f);
+                    BasicTooltipText = _locationLock ? "" : TOOLTIP_TEXT;
                 }
             }
         }
@@ -72,7 +74,7 @@ namespace Charr.Timers_BlishHUD.Controls
         protected Point _dragStart = Point.Zero;
 
         private Dictionary<Control, Glide.Tween> _childTweens = new Dictionary<Control, Tween>();
-
+        private const string TOOLTIP_TEXT = "Drag to move alert container.\nYou can lock it in place by going to the settings panel.";
 
         #endregion
 
@@ -82,12 +84,10 @@ namespace Charr.Timers_BlishHUD.Controls
             };
 
             TimersModule.ModuleInstance._alertContainerLocationSetting.SettingChanged += (sender, args) => {
-                if (Location != args.NewValue) {
-                    Location = args.NewValue;
-                }
+                Location = args.NewValue;
             };
 
-            this.Resized += (sender, args) => { HandleResized(args); };
+            BasicTooltipText = _locationLock ? "" : TOOLTIP_TEXT;
         }
 
         #region Child Handling
@@ -172,6 +172,7 @@ namespace Charr.Timers_BlishHUD.Controls
             int newWidth = (int)(_children.Count * _children[0].Width + (_children.Count - 1) * _controlPadding.X + outerPadX * 2);
             int newHeight = (int)(_children.Count * _children[0].Height + (_children.Count - 1) * _controlPadding.Y + outerPadY * 2);
 
+            var previousSize = this.Size;
             if (FlowDirection == AlertFlowDirection.LeftToRight ||
                 FlowDirection == AlertFlowDirection.RightToLeft) {
                 Width = newWidth;
@@ -181,6 +182,21 @@ namespace Charr.Timers_BlishHUD.Controls
                      FlowDirection == AlertFlowDirection.BottomToTop) {
                 Width = (int)(_children[0].Width + outerPadX * 2);
                 Height = newHeight;
+            }
+
+            // Restore the location that the container should be at, which can change when the container resizes
+            RecalculateLocation();
+
+            // Restore the location that the children should be at, which can change when the container resizes
+            if (FlowDirection == AlertFlowDirection.RightToLeft) {
+                foreach (var child in _children) {
+                    child.Right += Size.X - previousSize.X;
+                }
+            }
+            else if (FlowDirection == AlertFlowDirection.BottomToTop) {
+                foreach (var child in _children) {
+                    child.Bottom += Size.Y - previousSize.Y;
+                }
             }
         }
 
@@ -259,9 +275,11 @@ namespace Charr.Timers_BlishHUD.Controls
         #endregion
 
         public override void RecalculateLayout() {
-            if (_children.Count == 0) {
+            if (_children.Count == 0 || TimersModule.ModuleInstance._hideAlertsSetting.Value) {
+                this.Hide();
                 return;
-            }
+            } 
+            this.Show();
 
             UpdateSizeToFitChildren();
             ReflowChildLayout(_children.ToArray());
@@ -269,39 +287,26 @@ namespace Charr.Timers_BlishHUD.Controls
             base.RecalculateLayout();
         }
 
-        protected void HandleResized(ResizedEventArgs args) {
-            // Restore the location that the container should be at, which can change when the container resizes
+        protected void RecalculateLocation() {
             switch (TimersModule.ModuleInstance._alertDisplayOrientationSetting.Value) {
                 case AlertFlowDirection.LeftToRight:
                 case AlertFlowDirection.TopToBottom:
-                    this.Left = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.X;
-                    this.Top = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.Y;
+                    Location = TimersModule.ModuleInstance._alertContainerLocationSetting.Value;
                     break;
                 case AlertFlowDirection.RightToLeft:
-                    this.Right = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.X;
+                    this.Right = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.X + TimersModule.ModuleInstance._alertContainerSizeSetting.Value.X;
                     this.Top = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.Y;
                     break;
                 case AlertFlowDirection.BottomToTop:
                     this.Left = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.X;
-                    this.Bottom = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.Y;
+                    this.Bottom = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.Y + TimersModule.ModuleInstance._alertContainerSizeSetting.Value.Y;
                     break;
-            }
-
-            // Restore the location that the children should be at, which can change when the container resizes
-            if (FlowDirection == AlertFlowDirection.RightToLeft) {
-                foreach (var child in _children) {
-                    child.Right += args.CurrentSize.X - args.PreviousSize.X;
-                }
-            } else if (FlowDirection == AlertFlowDirection.BottomToTop) {
-                foreach (var child in _children) {
-                    child.Bottom += args.CurrentSize.Y - args.PreviousSize.Y;
-                }
             }
         }
 
         #region Mouse Handling
         protected override CaptureType CapturesInput() {
-            if (Lock || !Visible) {
+            if (LocationLock || !_visible) {
                 return CaptureType.None | CaptureType.DoNotBlock;
             }
 
@@ -309,7 +314,7 @@ namespace Charr.Timers_BlishHUD.Controls
         }
 
         protected override void OnLeftMouseButtonPressed(MouseEventArgs e) {
-            if (!Lock) {
+            if (!LocationLock) {
                 _dragStart = this.RelativeMousePosition;
                 _mouseDragging = true;
             }
@@ -322,18 +327,8 @@ namespace Charr.Timers_BlishHUD.Controls
             }
 
             if (_mouseDragging) {
-                switch (TimersModule.ModuleInstance._alertDisplayOrientationSetting.Value) {
-                    case AlertFlowDirection.LeftToRight:
-                    case AlertFlowDirection.TopToBottom:
-                        TimersModule.ModuleInstance._alertContainerLocationSetting.Value = this.Location;
-                        break;
-                    case AlertFlowDirection.RightToLeft:
-                        TimersModule.ModuleInstance._alertContainerLocationSetting.Value = new Point(this.Right, this.Top);
-                        break;
-                    case AlertFlowDirection.BottomToTop:
-                        TimersModule.ModuleInstance._alertContainerLocationSetting.Value = new Point(this.Left, this.Bottom);
-                        break;
-                }
+                TimersModule.ModuleInstance._alertContainerLocationSetting.Value = Location;
+                TimersModule.ModuleInstance._alertContainerSizeSetting.Value = Size;
 
                 _mouseDragging = false;
             }
@@ -344,7 +339,6 @@ namespace Charr.Timers_BlishHUD.Controls
         public override void UpdateContainer(GameTime gameTime) {
             if (_mouseDragging) {
                 var newLocation = Input.Mouse.Position - _dragStart;
-                var offset = newLocation - Location;
                 Location = newLocation;
                 _dragStart = this.RelativeMousePosition;
             }
