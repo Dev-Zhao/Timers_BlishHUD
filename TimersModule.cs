@@ -114,6 +114,7 @@ namespace Charr.Timers_BlishHUD
         public SettingEntry<AlertType> _alertSizeSetting;
         public SettingEntry<AlertFlowDirection> _alertDisplayOrientationSetting;
         public SettingEntry<Point> _alertContainerLocationSetting;
+        public SettingEntry<Point> _alertContainerSizeSetting;
         public SettingEntry<float> _alertMoveDelaySetting;
         public SettingEntry<float> _alertFadeDelaySetting;
         public SettingEntry<bool> _alertFillDirection;
@@ -172,14 +173,16 @@ namespace Charr.Timers_BlishHUD
             _alertDisplayOrientationSetting =
                 _alertSettingCollection.DefineSetting("AlertDisplayOrientation", AlertFlowDirection.TopToBottom);
             _alertContainerLocationSetting = _alertSettingCollection.DefineSetting("AlertContainerLocation", new Point(GameService.Graphics.WindowWidth - GameService.Graphics.WindowWidth / 4, GameService.Graphics.WindowHeight / 2));
+            _alertContainerSizeSetting = _alertSettingCollection.DefineSetting("AlertContainerSize", new Point(0,0));
             _alertMoveDelaySetting = _alertSettingCollection.DefineSetting("AlertMoveSpeed", 0.75f);
             _alertFadeDelaySetting = _alertSettingCollection.DefineSetting("AlertFadeSpeed", 1.0f);
             _alertFillDirection = _alertSettingCollection.DefineSetting("FillDirection", true);
         }
 
-        private void _showResetTimerButton_SettingChanged(object sender, ValueChangedEventArgs<bool> e)
-        {
-            _resetButton?.ToggleVisibility();
+        private void _showResetTimerButton_SettingChanged(object sender, ValueChangedEventArgs<bool> e) {
+            if (_resetButton != null) {
+                _resetButton.Visible = e.NewValue && _activeEncounters.Count > 0;
+            }
         }
 
         private void ResetHotkey_Activated(object sender, EventArgs e)
@@ -204,7 +207,7 @@ namespace Charr.Timers_BlishHUD
 
         private void SettingsUpdateLockAlertContainer(object sender = null, EventArgs e = null) {
             if (_alertContainer != null) {
-                _alertContainer.Lock = _lockAlertContainerSetting.Value;
+                _alertContainer.LocationLock = _lockAlertContainerSetting.Value;
             }
         }
 
@@ -325,11 +328,8 @@ namespace Charr.Timers_BlishHUD
                     enc.Deactivate();
                 }
             }
-            /*
-            if (_activeEncounters.Count > 0)
-                _alertWindow.Show();
-            else
-                _alertWindow.Hide();*/
+
+            _resetButton.Visible = _showResetTimerButton.Value && _activeEncounters.Count > 0;
         }
 
         private Encounter ParseEncounter(TimerStream timerStream) {
@@ -564,7 +564,7 @@ namespace Charr.Timers_BlishHUD
                 PadTopBeforeControl = true,
                 BackgroundColor = new Color(Color.Black, 0.3f),
                 FlowDirection = _alertDisplayOrientationSetting.Value,
-                Lock = _lockAlertContainerSetting.Value,
+                LocationLock = _lockAlertContainerSetting.Value,
                 Location = _alertContainerLocationSetting.Value,
                 Visible = !_hideAlertsSetting.Value
             };
@@ -892,6 +892,21 @@ namespace Charr.Timers_BlishHUD
                 _hideMarkersSetting.Value = hideMarkersCB.Checked;
             };
 
+            Checkbox hideResetTimersCB = new Checkbox {
+                Parent = _alertSettingsWindow,
+                Text = "Hide Reset Timers Button",
+                BasicTooltipText =
+                    "When enabled, the reset timers button will always be hidden.",
+                Location = new Point(
+                    Control.ControlStandard.ControlOffset.X,
+                    hideMarkersCB.Bottom + Control.ControlStandard.ControlOffset.Y)
+            };
+            hideResetTimersCB.Checked = !_showResetTimerButton.Value;
+
+            hideResetTimersCB.CheckedChanged += delegate {
+                _showResetTimerButton.Value = !hideResetTimersCB.Checked;
+            };
+
             Checkbox hideSoundsCB = new Checkbox {
                 Parent = _alertSettingsWindow,
                 Text = "Mute Text to Speech",
@@ -899,7 +914,7 @@ namespace Charr.Timers_BlishHUD
                     "When enabled, text to speech will be muted.",
                 Location = new Point(
                     Control.ControlStandard.ControlOffset.X,
-                    hideMarkersCB.Bottom + Control.ControlStandard.ControlOffset.Y)
+                    hideResetTimersCB.Bottom + Control.ControlStandard.ControlOffset.Y)
             };
             hideSoundsCB.Checked = _hideSoundsSetting.Value;
 
@@ -1296,7 +1311,7 @@ namespace Charr.Timers_BlishHUD
         /// <inheritdoc />
         protected override void Unload() {
             // Unload here
-            _debugText.Dispose();
+            _debugText?.Dispose();
 
             timerLoader?.Dispose();
 
@@ -1318,32 +1333,32 @@ namespace Charr.Timers_BlishHUD
 
             // Cleanup tab
             GameService.Overlay.BlishHudWindow.RemoveTab(_timersTab);
-            _tabPanel.Dispose();
-            _allTimerDetails.ForEach(de => de.Dispose());
-            _allTimerDetails.Clear();
-            _alertContainer.Dispose();
-            _alertSettingsWindow.Dispose();
-            _testAlertPanels.ForEach(panel => panel.Dispose());
+            _tabPanel?.Dispose();
+            _allTimerDetails?.ForEach(de => de.Dispose());
+            _allTimerDetails?.Clear();
+            _alertContainer?.Dispose();
+            _alertSettingsWindow?.Dispose();
+            _testAlertPanels?.ForEach(panel => panel.Dispose());
 
             // Cleanup model
-            _encounterEnableSettings.Clear();
-            _activeAlertIds.Clear();
-            _activeDirectionIds.Clear();
-            _activeMarkerIds.Clear();
-            _encounterIds.Clear();
+            _encounterEnableSettings?.Clear();
+            _activeAlertIds?.Clear();
+            _activeDirectionIds?.Clear();
+            _activeMarkerIds?.Clear();
+            _encounterIds?.Clear();
             foreach (var enc in _encounters) {
                 enc.Dispose();
             }
-            _encounters.Clear();
-            _activeEncounters.Clear();
+            _encounters?.Clear();
+            _activeEncounters?.Clear();
             foreach (var enc in _invalidEncounters) {
                 enc.Dispose();
             }
-            _invalidEncounters.Clear();
+            _invalidEncounters?.Clear();
 
             // Cleanup readers and resource managers
-            _pathableResourceManagers.ForEach(m => m.Dispose());
-            _pathableResourceManagers.Clear();
+            _pathableResourceManagers?.ForEach(m => m.Dispose());
+            _pathableResourceManagers?.Clear();
 
             // All static members must be manually unset
             ModuleInstance = null;
