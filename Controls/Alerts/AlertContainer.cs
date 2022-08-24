@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Blish_HUD;
-using Gw2Sharp.Models;
 
 namespace Charr.Timers_BlishHUD.Controls
 {
@@ -185,7 +184,20 @@ namespace Charr.Timers_BlishHUD.Controls
             }
 
             // Restore the location that the container should be at, which can change when the container resizes
-            RecalculateLocation();
+            switch (TimersModule.ModuleInstance._alertDisplayOrientationSetting.Value) {
+                case AlertFlowDirection.LeftToRight:
+                case AlertFlowDirection.TopToBottom:
+                    Location = TimersModule.ModuleInstance._alertContainerLocationSetting.Value;
+                    break;
+                case AlertFlowDirection.RightToLeft:
+                    this.Right = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.X + TimersModule.ModuleInstance._alertContainerSizeSetting.Value.X;
+                    this.Top = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.Y;
+                    break;
+                case AlertFlowDirection.BottomToTop:
+                    this.Left = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.X;
+                    this.Bottom = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.Y + TimersModule.ModuleInstance._alertContainerSizeSetting.Value.Y;
+                    break;
+            }
 
             // Restore the location that the children should be at, which can change when the container resizes
             if (FlowDirection == AlertFlowDirection.RightToLeft) {
@@ -287,23 +299,6 @@ namespace Charr.Timers_BlishHUD.Controls
             base.RecalculateLayout();
         }
 
-        protected void RecalculateLocation() {
-            switch (TimersModule.ModuleInstance._alertDisplayOrientationSetting.Value) {
-                case AlertFlowDirection.LeftToRight:
-                case AlertFlowDirection.TopToBottom:
-                    Location = TimersModule.ModuleInstance._alertContainerLocationSetting.Value;
-                    break;
-                case AlertFlowDirection.RightToLeft:
-                    this.Right = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.X + TimersModule.ModuleInstance._alertContainerSizeSetting.Value.X;
-                    this.Top = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.Y;
-                    break;
-                case AlertFlowDirection.BottomToTop:
-                    this.Left = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.X;
-                    this.Bottom = TimersModule.ModuleInstance._alertContainerLocationSetting.Value.Y + TimersModule.ModuleInstance._alertContainerSizeSetting.Value.Y;
-                    break;
-            }
-        }
-
         #region Mouse Handling
         protected override CaptureType CapturesInput() {
             if (LocationLock || !_visible) {
@@ -321,7 +316,7 @@ namespace Charr.Timers_BlishHUD.Controls
             base.OnLeftMouseButtonPressed(e);
         }
 
-        public void HandleLeftMouseButtonReleased(MouseEventArgs e) {
+        private void HandleLeftMouseButtonReleased(MouseEventArgs e) {
             if (TimersModule.ModuleInstance == null) {
                 return;
             }
