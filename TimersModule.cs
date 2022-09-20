@@ -219,14 +219,7 @@ namespace Charr.Timers_BlishHUD
             foreach (var enc in _encounters) {
                 enc.ShowAlerts = !_hideAlertsSetting.Value;
             }
-            if (_alertContainer != null) {
-                if (_hideAlertsSetting.Value) {
-                    _alertContainer?.Hide();
-                }
-                else {
-                    _alertContainer?.Show();
-                }
-            }
+
         }
 
         private void SettingsUpdateHideDirections(object sender = null, EventArgs e = null) {
@@ -406,7 +399,7 @@ namespace Charr.Timers_BlishHUD
             string timerDirectory = DirectoriesManager.GetFullDirectoryPath("timers");
 
             try {
-                ShowLatestRelease();
+                //ShowLatestRelease();
                 using (WebClient wc = new WebClient()) {
                     var json = new WebClient().DownloadString("https://bhm.blishhud.com/Charr.Timers_BlishHUD/timer_update.json");
                     var updates = JsonConvert.DeserializeObject<List<Update>>(json, _jsonSettings);
@@ -565,8 +558,7 @@ namespace Charr.Timers_BlishHUD
                 BackgroundColor = new Color(Color.Black, 0.3f),
                 FlowDirection = _alertDisplayOrientationSetting.Value,
                 LocationLock = _lockAlertContainerSetting.Value,
-                Location = _alertContainerLocationSetting.Value,
-                Visible = !_hideAlertsSetting.Value
+                Location = _alertContainerLocationSetting.Value
             };
             SettingsUpdateAlertSize();
 
@@ -800,12 +792,12 @@ namespace Charr.Timers_BlishHUD
                     timerPanel.Bottom + StandardButton.ControlStandard.ControlOffset.Y);
 
             // 2. Alert Settings Window
-            _alertSettingsWindow = new StandardWindow(Resources.AlertSettingsBackground, new Rectangle(24, 17, 505, 390), new Rectangle(38, 38, 472, 350)) {
+            _alertSettingsWindow = new StandardWindow(Resources.AlertSettingsBackground, new Rectangle(24, 17, 500, 500), new Rectangle(40, 40, 480, 480)) {
                 Parent = GameService.Graphics.SpriteScreen,
                 Title = "Alert Settings",
                 Emblem = Resources.TextureTimerEmblem,
                 SavesPosition = true,
-                Id = "TimersAlertSettingsWindow",
+                Id = "TimersAlertSettingsWindow"
             };
 
             _alertSettingsWindow.Hide();
@@ -1202,8 +1194,7 @@ namespace Charr.Timers_BlishHUD
             closeAlertSettingsButton.Location =
                 new Point(
                     (_alertSettingsWindow.Left + _alertSettingsWindow.Right) / 2 - closeAlertSettingsButton.Width / 2,
-                    _alertSettingsWindow.Bottom - StandardButton.ControlStandard.ControlOffset.Y -
-                    closeAlertSettingsButton.Height);
+                    alertFadeDelayTextBox.Bottom + StandardButton.ControlStandard.ControlOffset.Y);
 
             closeAlertSettingsButton.Click += delegate { _alertSettingsWindow.Hide(); };
 

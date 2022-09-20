@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Channels;
 using Blish_HUD;
 
 namespace Charr.Timers_BlishHUD.Controls
@@ -86,7 +87,17 @@ namespace Charr.Timers_BlishHUD.Controls
                 Location = args.NewValue;
             };
 
+            TimersModule.ModuleInstance._hideAlertsSetting.SettingChanged += (sender, args) => {
+                if (!TimersModule.ModuleInstance._hideAlertsSetting.Value && _children.Count > 0) {
+                    this.Show();
+                }
+                else {
+                    this.Hide();
+                }
+            };
+
             BasicTooltipText = _locationLock ? "" : TOOLTIP_TEXT;
+            Visible = false;
         }
 
         #region Child Handling
@@ -135,7 +146,7 @@ namespace Charr.Timers_BlishHUD.Controls
             //Invalidate();
             //}
             //else {
-            ReflowChildLayout(resultingChildren.ToArray());
+            RecalculateLayout();
             //}
         }
 
@@ -165,6 +176,10 @@ namespace Charr.Timers_BlishHUD.Controls
         }
 
         private void UpdateSizeToFitChildren() {
+            if (_children.Count == 0) {
+                return;
+            }
+
             float outerPadX = _padLeftBeforeControl ? _controlPadding.X : _outerControlPadding.X;
             float outerPadY = _padTopBeforeControl ? _controlPadding.Y : _outerControlPadding.Y;
 
@@ -289,9 +304,10 @@ namespace Charr.Timers_BlishHUD.Controls
         public override void RecalculateLayout() {
             if (_children.Count == 0 || TimersModule.ModuleInstance._hideAlertsSetting.Value) {
                 this.Hide();
-                return;
-            } 
-            this.Show();
+            }
+            else {
+                this.Show();
+            }
 
             UpdateSizeToFitChildren();
             ReflowChildLayout(_children.ToArray());
