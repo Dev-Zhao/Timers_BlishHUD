@@ -80,7 +80,10 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
         private void Initialize() {
             _verts = new VertexPositionTexture[4];
 
-            _billboardEffect = _billboardEffect ?? new BasicEffect(GameService.Graphics.GraphicsDevice);
+            using (var graphicsDeviceContext = GameService.Graphics.LendGraphicsDeviceContext()) {
+                _billboardEffect = _billboardEffect ?? new BasicEffect(graphicsDeviceContext.GraphicsDevice);
+            }
+
             _billboardEffect.TextureEnabled = true;
         }
 

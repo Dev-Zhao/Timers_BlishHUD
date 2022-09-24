@@ -140,7 +140,11 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
 
         private void Initialize() {
             _verts = new VertexPositionTexture[4];
-            _vertexBuffer = new DynamicVertexBuffer(GameService.Graphics.GraphicsDevice, typeof(VertexPositionTexture), 4, BufferUsage.WriteOnly);
+
+            using (var graphicsDeviceContext = GameService.Graphics.LendGraphicsDeviceContext()) {
+                _vertexBuffer = new DynamicVertexBuffer(graphicsDeviceContext.GraphicsDevice,
+                    typeof(VertexPositionTexture), 4, BufferUsage.WriteOnly);
+            }
         }
 
         private void RecalculateSize(Vector2 newSize, float scale) {

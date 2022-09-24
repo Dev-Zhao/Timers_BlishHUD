@@ -1,4 +1,5 @@
-﻿using Blish_HUD;
+﻿using System;
+using Blish_HUD;
 using Blish_HUD.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,7 +11,13 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
     public abstract class Entity : INotifyPropertyChanged, IEntity
     {
 
-        protected static BasicEffect StandardEffect { get; } = new BasicEffect(GameService.Graphics.GraphicsDevice) { TextureEnabled = true };
+        protected static BasicEffect StandardEffect { get; } = new Func<BasicEffect>(() => {
+            BasicEffect effect = null;
+            using (var graphicsDeviceContext = GameService.Graphics.LendGraphicsDeviceContext()) {
+                effect = new BasicEffect(graphicsDeviceContext.GraphicsDevice) { TextureEnabled = true };
+            }
+            return effect;
+        })();
 
         protected Vector3 _position = Vector3.Zero;
         protected Vector3 _rotation = Vector3.Zero;
@@ -139,7 +146,11 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
 
         public virtual void DoUpdate(GameTime gameTime) {
             if (_pendingRebuild) {
-                HandleRebuild(GameService.Graphics.GraphicsDevice);
+                using (var graphicsDeviceContext = GameService.Graphics.LendGraphicsDeviceContext()) {
+                    HandleRebuild(graphicsDeviceContext.GraphicsDevice);
+                    graphicsDeviceContext.Dispose();
+                }
+
                 _pendingRebuild = false;
             }
 

@@ -66,7 +66,9 @@ namespace Charr.Timers_BlishHUD.Pathing.Content
                         return fallbackTexture;
                     }
 
-                    _textureCache.Add(texturePath, TextureUtil.FromStreamPremultiplied(GameService.Graphics.GraphicsDevice, textureStream));
+                    using (var graphicsDeviceContext = GameService.Graphics.LendGraphicsDeviceContext()) {
+                        _textureCache.Add(texturePath, TextureUtil.FromStreamPremultiplied(graphicsDeviceContext.GraphicsDevice, textureStream));
+                    }
 
                     Logger.Debug("Successfully loaded texture {dataReaderPath}.", this.DataReader.GetPathRepresentation(texturePath));
                 }

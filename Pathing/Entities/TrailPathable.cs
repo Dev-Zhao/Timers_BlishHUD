@@ -113,7 +113,12 @@ namespace Charr.Timers_BlishHUD.Pathing.Entities
 
 
             _vertexBuffer?.Dispose();
-            _vertexBuffer = new VertexBuffer(GameService.Graphics.GraphicsDevice, VertexPositionColorTexture.VertexDeclaration, _vertexData.Length, BufferUsage.WriteOnly);
+
+            using (var graphicsDeviceContext = GameService.Graphics.LendGraphicsDeviceContext()) {
+                _vertexBuffer = new VertexBuffer(graphicsDeviceContext.GraphicsDevice,
+                    VertexPositionColorTexture.VertexDeclaration, _vertexData.Length, BufferUsage.WriteOnly);
+            }
+
             _vertexBuffer.SetData(_vertexData);
         }
 
