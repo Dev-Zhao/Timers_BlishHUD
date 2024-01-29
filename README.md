@@ -14,7 +14,7 @@ For premade timer files click [here](https://github.com/QuitarHero/Hero-Timers/r
 Receive alerts for all important boss mechanics.
 ![alt text](screenshots/notification.jpg "Notifications")
 
-Show Location Based Markers anywhere on the map
+Show Location Based Markers anywhere on the map\
 ![alt text](screenshots/markers.jpg "Markers")
 
 Displays direction routes to tell you where you need to go. 
