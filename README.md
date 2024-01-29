@@ -11,7 +11,7 @@ Loads customized timer files which you can enable/disable individually.
 For premade timer files click [here](https://github.com/QuitarHero/Hero-Timers/releases/tag/v1.0.0) (developed by QuitarHero)
 ![alt text](screenshots/timers.jpg "Timers")
 
-Receive alerts for all important boss mechanics.
+Receive alerts for all important boss mechanics.\
 ![alt text](screenshots/notification.jpg "Notifications")
 
 Show Location Based Markers anywhere on the map\
