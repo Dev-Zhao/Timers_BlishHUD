@@ -5,13 +5,16 @@ using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace Charr.Timers_BlishHUD.Models
+namespace Charr.Timers_BlishHUD.Models.Timers
 {
-    public class Marker
+    public class Marker : Timer
     {
+        public Marker()
+        {
+            Name = "Unnamed Marker";
+            _showTimer = true;
+        }
         // Serialized Properties
-        [JsonProperty("uid")] public string UID { get; set; }
-        [JsonProperty("name")] public string Name { get; set; } = "Unnamed Marker";
         [JsonProperty("position")] public List<float> Position { get; set; }
         [JsonProperty("rotation")] public List<float> Rotation { get; set; }
         [JsonProperty("duration")] public float Duration { get; set; } = 10f;
@@ -20,33 +23,21 @@ namespace Charr.Timers_BlishHUD.Models
         [JsonProperty("texture")] public string TextureString { get; set; }
         [JsonProperty("text")] public string Text { get; set; }
         [JsonProperty("fadeCenter")] public bool FadeCenter { get; set; } = true;
-        [JsonProperty("timestamps")] public List<float> Timestamps { get; set; }
 
 
         // Non-serialized properties
-        public bool Activated {
-            get { return _activated; }
-            set {
-                if (value)
-                    Activate();
-                else
-                    Deactivate();
-            }
-        }
         public bool ShowMarker {
-            get { return _showMarker; }
+            get { return _showTimer; }
             set {
                 if (_markerPathable != null) {
                     _markerPathable.ShouldShow = value;
                 }
-                _showMarker = value;
+                _showTimer = value;
             }
         }
 
         // Private members
         private MarkerPathable _markerPathable;
-        private bool _activated;
-        private bool _showMarker = true;
 
         public string Initialize(PathableResourceManager resourceManager) {
             if (Position == null || Position.Count != 3)
@@ -73,27 +64,27 @@ namespace Charr.Timers_BlishHUD.Models
             return null;
         }
 
-        public void Activate() {
+        public override void Activate() {
             if (_markerPathable != null && !_activated) {
                 GameService.Graphics.World.AddEntity(_markerPathable);
                 _activated = true;
             }
         }
 
-        public void Deactivate() {
+        public override void Deactivate() {
             if (_markerPathable != null && _activated) {
                 GameService.Graphics.World.RemoveEntity(_markerPathable);
                 _activated = false;
             }
         }
 
-        public void Stop() {
+        public override void Stop() {
             if (_markerPathable != null) {
                 _markerPathable.Visible = false;
             }
         }
 
-        public void Update(float elapsedTime) {
+        public override void Update(float elapsedTime) {
             if (_markerPathable == null || !_activated) return;
 
             bool enabled = false;

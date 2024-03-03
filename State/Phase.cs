@@ -1,11 +1,12 @@
 ﻿using Charr.Timers_BlishHUD.Models.Triggers;
 using Charr.Timers_BlishHUD.Pathing.Content;
-using Charr.Timers_BlishHUD.State;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Blish_HUD;
+using Charr.Timers_BlishHUD.Models.Timers;
+using Charr.Timers_BlishHUD.Models.Actions;
 
 namespace Charr.Timers_BlishHUD.Models
 {
@@ -23,10 +24,13 @@ namespace Charr.Timers_BlishHUD.Models
         [JsonProperty("finish")]
         public Trigger FinishTrigger { get; set; }
 
-        [JsonProperty("alerts")] public List<Alert> Alerts { get; set; }
+        [JsonProperty("alerts")] public List<Alert> Alerts { get; set; } = new List<Alert>();
         [JsonProperty("directions")] public List<Direction> Directions { get; set; } = new List<Direction>();
         [JsonProperty("markers")] public List<Marker> Markers { get; set; } = new List<Marker>();
         [JsonProperty("sounds")] public List<Sound> Sounds { get; set; } = new List<Sound>();
+
+        [JsonProperty("actions")]
+        public List<SkipAction> Actions { get; set; } = new List<SkipAction>();
 
         // Non-serialized properties
         public bool Activated {
@@ -81,6 +85,14 @@ namespace Charr.Timers_BlishHUD.Models
             }
 
             // Validation & Initialization
+            if (Actions != null)
+            {
+                foreach (SkipAction ac in Actions)
+                {
+                    message = ac.Initialize();
+                    if (message != null) return message;
+                }
+            }
             if (Alerts != null) {
                 foreach (Alert al in Alerts) {
                     message = al.Initialize(pathableResourceManager);
@@ -205,6 +217,8 @@ namespace Charr.Timers_BlishHUD.Models
 
             FinishTrigger?.Enable();
 
+            Actions?.ForEach(ac => ac.Start());
+
             Active = true;
             Debug.WriteLine(Name + " phase starting");
             //Logger.Warn(Name + " phase starting");
@@ -218,6 +232,8 @@ namespace Charr.Timers_BlishHUD.Models
 
             FinishTrigger?.Reset();
             FinishTrigger?.Disable();
+
+            Actions?.ForEach(ac => ac.Stop());
 
             Alerts?.ForEach(al => {
                 if (!string.IsNullOrEmpty(al.UID)) {
@@ -256,15 +272,44 @@ namespace Charr.Timers_BlishHUD.Models
         }
 
         public void Update(float elapsedTime) {
-            Alerts?.ForEach(al => al.Update(elapsedTime));
-            Directions?.ForEach(dir => dir.Update(elapsedTime));
-            Markers?.ForEach(mark => mark.Update(elapsedTime));
-            Sounds?.ForEach(voice => voice.Update(elapsedTime));
+            Dictionary<string, float> skippedTime = new();
+            Dictionary<string, float> elapsedTimes = new()
+            {
+                ["default"] = elapsedTime
+            };
+
+            if (Actions != null) {
+                foreach (var action in Actions)
+                {
+                    if (action.Type != "skipTime") continue;
+                    if (action.ActionTrigger != null && action.ActionTrigger.Triggered())
+                    {
+                        action.Update();
+                    }
+                    foreach (var set in action.TimerSets)
+                    {
+                        if (skippedTime.ContainsKey(set)) skippedTime[set] += ((SkipAction)action).SkippedTime;
+                        else skippedTime[set] = ((SkipAction)action).SkippedTime;
+                    }
+                }
+                foreach (var timeSkip in skippedTime)
+                {
+                    elapsedTimes[timeSkip.Key] = elapsedTime+timeSkip.Value;
+                }
+            }
+            Alerts?.ForEach(al => al.Update(elapsedTimes));
+            Directions?.ForEach(dir => dir.Update(elapsedTimes));
+            Markers?.ForEach(mark => mark.Update(elapsedTimes));
+            Sounds?.ForEach(voice => voice.Update(elapsedTimes));
+            skippedTime.Clear();
+            elapsedTimes.Clear();
         }
 
         public void Dispose() {
             Deactivate();
+            Actions?.ForEach(ac => ac?.Dispose());
             Alerts?.ForEach(al => al?.Dispose());
+            Actions?.Clear();
             Directions?.Clear();
             Markers?.Clear();
             Alerts?.Clear();

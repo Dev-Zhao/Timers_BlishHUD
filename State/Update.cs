@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 
-namespace Charr.Timers_BlishHUD.State
+namespace Charr.Timers_BlishHUD.Models
 {
     [JsonObject(MemberSerialization.OptIn)]
     public class Update {

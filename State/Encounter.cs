@@ -246,6 +246,10 @@ namespace Charr.Timers_BlishHUD.Models
                     }
                 }
             }
+            else if (State == EncounterStates.Suspended)
+            {
+                // NOPE
+            }
             else if (Phases[_currentPhase].FinishTrigger != null &&
                      Phases[_currentPhase].FinishTrigger.Triggered()) {
                 // Transition to waiting period between phases.
