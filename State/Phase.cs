@@ -29,6 +29,7 @@ namespace Charr.Timers_BlishHUD.Models
         [JsonProperty("markers")] public List<Marker> Markers { get; set; } = new List<Marker>();
         [JsonProperty("sounds")] public List<Sound> Sounds { get; set; } = new List<Sound>();
 
+        // Todo: Switch to TimerAction, use generic actions - supporting different actions.
         [JsonProperty("actions")]
         public List<SkipAction> Actions { get; set; } = new List<SkipAction>();
 
@@ -233,7 +234,11 @@ namespace Charr.Timers_BlishHUD.Models
             FinishTrigger?.Reset();
             FinishTrigger?.Disable();
 
-            Actions?.ForEach(ac => ac.Stop());
+            Actions?.ForEach(ac =>
+            {
+                ac.Stop();
+                ac.Reset();
+            });
 
             Alerts?.ForEach(al => {
                 if (!string.IsNullOrEmpty(al.UID)) {
@@ -294,7 +299,7 @@ namespace Charr.Timers_BlishHUD.Models
                 }
                 foreach (var timeSkip in skippedTime)
                 {
-                    elapsedTimes[timeSkip.Key] = elapsedTime+timeSkip.Value;
+                    elapsedTimes[timeSkip.Key] = elapsedTime + timeSkip.Value;
                 }
             }
             Alerts?.ForEach(al => al.Update(elapsedTimes));

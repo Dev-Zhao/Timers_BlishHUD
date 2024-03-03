@@ -37,6 +37,7 @@ namespace Charr.Timers_BlishHUD.Models.Timers
         public void Update(Dictionary<string, float> elapsedTimes)
         {
             if (elapsedTimes.ContainsKey(TimerSet)) Update(elapsedTimes[TimerSet]);
+            else Update(elapsedTimes["default"]);
         }
         public abstract void Update(float elapsedTime);
         public abstract void Activate();
