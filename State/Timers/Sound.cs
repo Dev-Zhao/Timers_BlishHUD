@@ -35,15 +35,18 @@ namespace Charr.Timers_BlishHUD.Models.Timers
 
         public override void Activate() {
             _activated = true;
+            timeIndex = 0;
         }
 
         public override void Deactivate() {
             _synthesizer.SpeakAsyncCancelAll();
             _activated = false;
+            timeIndex = 0;
         }
 
         public override void Stop() {
             _synthesizer.SpeakAsyncCancelAll();
+            timeIndex = 0;
         }
 
         public override void Update(float elapsedTime) {
