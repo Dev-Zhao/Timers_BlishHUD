@@ -5,14 +5,17 @@ using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace Charr.Timers_BlishHUD.Models
+namespace Charr.Timers_BlishHUD.Models.Timers
 {
     [JsonObject(MemberSerialization.OptIn)]
-    public class Direction
+    public class Direction : Timer
     {
+        public Direction()
+        {
+            Name = "Unnamed Direction";
+            _showTimer = true;
+        }
         // Serialized properties
-        [JsonProperty("uid")] public string UID { get; set; }
-        [JsonProperty("name")] public string Name { get; set; } = "Unnamed Direction";
         [JsonProperty("position")] public List<float> Position { get; set; }
 
         [JsonProperty("destination")]
@@ -24,33 +27,20 @@ namespace Charr.Timers_BlishHUD.Models
         [JsonProperty("opacity")] public float Opacity { get; set; } = 0.8f;
         [JsonProperty("animSpeed")] public float AnimSpeed { get; set; } = 1f;
         [JsonProperty("texture")] public string TextureString { get; set; }
-        [JsonProperty("timestamps")] public List<float> Timestamps { get; set; }
 
         // Non-serialized properties
-        public bool Activated {
-            get { return _activated; }
-            set {
-                if (value)
-                    Activate();
-                else
-                    Deactivate();
-            }
-        }
-
         public bool ShowDirection {
-            get { return _showDirection; }
+            get { return _showTimer; }
             set {
                 if (_trail != null) {
                     _trail.ShouldShow = value;
                 }
-                _showDirection = value;
+                _showTimer = value;
             }
         }
 
         // Private members
         private TrailPathable _trail;
-        private bool _activated;
-        private bool _showDirection = true;
 
         public string Initialize(PathableResourceManager resourceManager) {
             if (Position == null || Position.Count != 3)
@@ -73,27 +63,27 @@ namespace Charr.Timers_BlishHUD.Models
             return null;
         }
 
-        public void Activate() {
+        public override void Activate() {
             if (_trail != null && !_activated) {
                 GameService.Graphics.World.AddEntity(_trail);
                 _activated = true;
             }
         }
 
-        public void Deactivate() {
+        public override void Deactivate() {
             if (_trail != null && _activated) {
                 GameService.Graphics.World.RemoveEntity(_trail);
                 _activated = false;
             }
         }
 
-        public void Stop() {
+        public override void Stop() {
             if (_trail != null) {
                 _trail.Visible = false;
             }
         }
 
-        public void Update(float elapsedTime) {
+        public override void Update(float elapsedTime) {
             if (_trail == null || !_activated) return;
 
             bool enabled = false;

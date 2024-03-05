@@ -3,36 +3,24 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Speech.Synthesis;
 
-namespace Charr.Timers_BlishHUD.State
+namespace Charr.Timers_BlishHUD.Models.Timers
 {
-    public class Sound
+    public class Sound : Timer
     {
-        // Serialized Properties
-        [JsonProperty("uid")] public string UID { get; set; }
-        [JsonProperty("name")] public string Name { get; set; } = "Unnamed Sound";
-        [JsonProperty("text")] public string Text { get; set; }
-        [JsonProperty("timestamps")] public List<float> Timestamps { get; set; }
-
-
-        // Non-serialized properties
-        public bool Activated {
-            get { return _activated; }
-            set {
-                if (value)
-                    Activate();
-                else
-                    Deactivate();
-            }
+        public Sound()
+        {
+            Name = "Unnamed Sound";
         }
+        // Serialized Properties
+        [JsonProperty("text")] public string Text { get; set; }
 
         // Private members
-        private bool _activated = false;
         private SpeechSynthesizer _synthesizer;
         private int timeIndex = 0;
 
         public string Initialize() {
             if (Text.IsNullOrEmpty())
-                return Name + " invalid text property";
+                return Name + $" invalid text property";
             if (Timestamps.IsNullOrEmpty())
                 return Name + " invalid timestamps property";
 
@@ -45,22 +33,21 @@ namespace Charr.Timers_BlishHUD.State
             return null;
         }
 
-        public void Activate() {
+        public override void Activate() {
             _activated = true;
         }
 
-        public void Deactivate() {
+        public override void Deactivate() {
             _synthesizer.SpeakAsyncCancelAll();
             _activated = false;
         }
 
-        public void Stop() {
+        public override void Stop() {
             _synthesizer.SpeakAsyncCancelAll();
         }
 
-        public void Update(float elapsedTime) {
+        public override void Update(float elapsedTime) {
             if (!_activated || TimersModule.ModuleInstance._hideSoundsSetting.Value) return;
-
 
             if (timeIndex < Timestamps.Count && elapsedTime >= Timestamps[timeIndex]) {
                 _synthesizer.SpeakAsync(Text);

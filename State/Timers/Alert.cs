@@ -10,12 +10,16 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Charr.Timers_BlishHUD.Models
+namespace Charr.Timers_BlishHUD.Models.Timers
 {
-    public class Alert : IDisposable
+    public class Alert : Timer, IDisposable
     {
+        public Alert()
+        {
+            Name = "Unnamed Alert";
+            _showTimer = true;
+        }
         // Serialized
-        [JsonProperty("uid")] public string UID { get; set; }
         [JsonProperty("warningDuration")] public float WarningDuration { get; set; } = 15.0f;
         [JsonProperty("alertDuration")] public float AlertDuration { get; set; } = 5.0f;
         [JsonProperty("warning")] public string WarningText { get; set; }
@@ -24,29 +28,22 @@ namespace Charr.Timers_BlishHUD.Models
         [JsonProperty("alertColor")] public List<float> AlertTextColor { get; set; }
         [JsonProperty("icon")] public string IconString { get; set; } = "raid";
         [JsonProperty("fillColor")] public List<float> FillColor { get; set; }
-        [JsonProperty("timestamps")] public List<float> Timestamps { get; set; }
 
         // Non-serialized properties
-        public bool Activated {
-            get { return _activated; }
-            set {
-                if (value)
-                    Activate();
-                else
-                    Deactivate();
-            }
-        }
-
-        public bool ShowAlert {
-            get { return _showAlert; }
-            set {
-                if (activePanels != null) {
-                    foreach (var entry in activePanels) {
+        public bool ShowAlert
+        {
+            get { return _showTimer; }
+            set
+            {
+                if (activePanels != null)
+                {
+                    foreach (var entry in activePanels)
+                    {
                         entry.Value.ShouldShow = value;
                     }
                 }
 
-                _showAlert = value;
+                _showTimer = value;
             }
         }
 
@@ -56,11 +53,9 @@ namespace Charr.Timers_BlishHUD.Models
         public AsyncTexture2D Icon { get; set; }
         public Dictionary<float, IAlertPanel> activePanels { get; set; }
 
-        // Private members
-        private bool _activated;
-        private bool _showAlert = true;
 
-        public string Initialize(PathableResourceManager resourceManager) {
+        public string Initialize(PathableResourceManager resourceManager)
+        {
             if (string.IsNullOrEmpty(WarningText))
                 WarningDuration = 0;
             if (string.IsNullOrEmpty(AlertText))
@@ -82,24 +77,30 @@ namespace Charr.Timers_BlishHUD.Models
             return null;
         }
 
-        public void Activate() {
-            if (Activated || activePanels == null) {
+        public override void Activate()
+        {
+            if (Activated || activePanels == null)
+            {
                 return;
             }
 
             _activated = true;
         }
 
-        public void Stop() {
-            if (!Activated) {
+        public override void Stop()
+        {
+            if (!Activated)
+            {
                 return;
             }
 
             Dispose();
         }
 
-        public void Deactivate() {
-            if (!Activated) {
+        public override void Deactivate()
+        {
+            if (!Activated)
+            {
                 return;
             }
 
@@ -107,20 +108,22 @@ namespace Charr.Timers_BlishHUD.Models
             _activated = false;
         }
 
-        private IAlertPanel CreatePanel() {
+        private IAlertPanel CreatePanel()
+        {
             IAlertPanel panel = TimersModule.ModuleInstance._alertSizeSetting.Value == AlertType.BigWigStyle
                                     ? new BigWigAlert()
-                                    : new AlertPanel() {
+                                    : new AlertPanel()
+                                    {
                                         ControlPadding = new Vector2(8, 8),
                                         PadLeftBeforeControl = true,
                                         PadTopBeforeControl = true,
                                     };
 
-            panel.Text = (string.IsNullOrEmpty(WarningText)) ? AlertText : WarningText;
-            panel.TextColor = (string.IsNullOrEmpty(WarningText)) ? AlertColor : WarningColor;
+            panel.Text = string.IsNullOrEmpty(WarningText) ? AlertText : WarningText;
+            panel.TextColor = string.IsNullOrEmpty(WarningText) ? AlertColor : WarningColor;
             panel.Icon = Texture2DExtension.Duplicate(Icon);
             panel.FillColor = Fill;
-            panel.MaxFill = (string.IsNullOrEmpty(WarningText)) ? 0.0f : WarningDuration;
+            panel.MaxFill = string.IsNullOrEmpty(WarningText) ? 0.0f : WarningDuration;
             panel.CurrentFill = 0.0f;
             panel.ShouldShow = ShowAlert;
 
@@ -129,51 +132,63 @@ namespace Charr.Timers_BlishHUD.Models
             return panel;
         }
 
-        public void Update(float elapsedTime) {
-            if (!Activated) {
+        public override void Update(float elapsedTime)
+        {
+            if (!Activated)
+            {
                 return;
             }
 
-            foreach (float time in Timestamps) {
+            foreach (float time in Timestamps)
+            {
                 IAlertPanel activePanel;
-                if (!activePanels.TryGetValue(time, out activePanel)) {
+                if (!activePanels.TryGetValue(time, out activePanel))
+                {
                     if (string.IsNullOrEmpty(WarningText) &&
                         elapsedTime >= time &&
-                        elapsedTime < time + AlertDuration) {
+                        elapsedTime < time + AlertDuration)
+                    {
                         // If no warning, initialize on alert
                         activePanels.Add(time, CreatePanel());
                     }
                     else if (!string.IsNullOrEmpty(WarningText) &&
                              elapsedTime >= time - WarningDuration &&
-                             elapsedTime < time + AlertDuration) {
+                             elapsedTime < time + AlertDuration)
+                    {
                         // If warning, initialize any time in duration
                         activePanels.Add(time, CreatePanel());
                     }
                 }
-                else {
+                else
+                {
                     // For on-going timers...
                     float activeTime = elapsedTime - (time - WarningDuration);
-                    if (activeTime >= WarningDuration + AlertDuration) {
+                    if (activeTime >= WarningDuration + AlertDuration)
+                    {
                         activePanel.Dispose();
                         activePanels.Remove(time);
                     }
-                    else if (activeTime >= WarningDuration) {
+                    else if (activeTime >= WarningDuration)
+                    {
                         // Show alert text on completed timers.
                         if (activePanel.CurrentFill != WarningDuration)
                             activePanel.CurrentFill = WarningDuration;
-                        activePanel.Text = (string.IsNullOrEmpty(AlertText)) ? WarningText : AlertText;
+                        activePanel.Text = string.IsNullOrEmpty(AlertText) ? WarningText : AlertText;
                         activePanel.TimerText = "";
                         activePanel.TextColor = AlertColor;
                     }
-                    else {
+                    else
+                    {
                         // Update incomplete timers.
                         activePanel.CurrentFill = activeTime + TimersModule.ModuleInstance.Resources.TICKINTERVAL;
-                        if ((WarningDuration - activeTime) < 5) {
+                        if (WarningDuration - activeTime < 5)
+                        {
                             activePanel.TimerText = ((float)Math.Round((decimal)(WarningDuration - activeTime), 1))
                                 .ToString("0.0");
                             activePanel.TimerTextColor = Color.Yellow;
                         }
-                        else {
+                        else
+                        {
                             activePanel.TimerText =
                                 ((float)Math.Floor((decimal)(WarningDuration - activeTime))).ToString();
                         }
@@ -182,9 +197,12 @@ namespace Charr.Timers_BlishHUD.Models
             }
         }
 
-        public void Dispose() {
-            if (activePanels != null) {
-                foreach (KeyValuePair<float, IAlertPanel> entry in activePanels) {
+        public void Dispose()
+        {
+            if (activePanels != null)
+            {
+                foreach (KeyValuePair<float, IAlertPanel> entry in activePanels)
+                {
                     Debug.WriteLine(entry.Value.Text + " dispose");
                     entry.Value.Dispose();
                 }
