@@ -27,6 +27,7 @@ using System.Net;
 using System.Threading.Tasks;
 
 using Label = Blish_HUD.Controls.Label;
+using System.Speech.Synthesis;
 
 namespace Charr.Timers_BlishHUD
 {
@@ -95,6 +96,7 @@ namespace Charr.Timers_BlishHUD
         private SettingEntry<Update> _lastTimersUpdate;
         private SettingEntry<bool> _showDebugSetting;
         public SettingEntry<bool> _debugModeSetting;
+        public SettingEntry<int> _volumeSetting;
         private Dictionary<String, SettingEntry<bool>> _encounterEnableSettings;
         private SettingEntry<bool> _sortCategorySetting;
         public SettingCollection _timerSettingCollection;
@@ -122,6 +124,7 @@ namespace Charr.Timers_BlishHUD
         public Update update = new Update();
 
         public TimerLoader timerLoader;
+        SpeechSynthesizer synthesizer = new SpeechSynthesizer();
 
         private bool _timersNeedUpdate = false;
 
@@ -178,6 +181,7 @@ namespace Charr.Timers_BlishHUD
             _alertMoveDelaySetting = _alertSettingCollection.DefineSetting("AlertMoveSpeed", 0.75f);
             _alertFadeDelaySetting = _alertSettingCollection.DefineSetting("AlertFadeSpeed", 1.0f);
             _alertFillDirection = _alertSettingCollection.DefineSetting("FillDirection", true);
+            _volumeSetting = _alertSettingCollection.DefineSetting("Volume", 100);
         }
 
         private void _showResetTimerButton_SettingChanged(object sender, ValueChangedEventArgs<bool> e) {
@@ -793,7 +797,7 @@ namespace Charr.Timers_BlishHUD
                     timerPanel.Bottom + StandardButton.ControlStandard.ControlOffset.Y);
 
             // 2. Alert Settings Window
-            _alertSettingsWindow = new StandardWindow(Resources.AlertSettingsBackground, new Rectangle(24, 17, 500, 500), new Rectangle(40, 40, 480, 480)) {
+            _alertSettingsWindow = new StandardWindow(Resources.AlertSettingsBackground, new Rectangle(24, 17, 500, 500), new Rectangle(40, 40, 500, 500)) {
                 Parent = GameService.Graphics.SpriteScreen,
                 Title = "Alert Settings",
                 Emblem = Resources.TextureTimerEmblem,
@@ -1030,6 +1034,10 @@ namespace Charr.Timers_BlishHUD
                                        PadTopBeforeControl = true,
                                    };
 
+                synthesizer.Volume = _volumeSetting.Value;
+                synthesizer.Rate = -2;
+                synthesizer.SpeakAsync("Test Alert Added");
+
                 newAlert.Text = "Test Alert " + (_testAlertPanels.Count + 1);
                 newAlert.TextColor = Color.White;
                 newAlert.Icon = Texture2DExtension.Duplicate(Resources.GetIcon("raid"));
@@ -1187,6 +1195,62 @@ namespace Charr.Timers_BlishHUD
                 alertFadeDelayTextBox.Text = String.Format("{0:0.00}", value);
             };
 
+            Label volumeLabel = new Label
+            {
+                Parent = _alertSettingsWindow,
+                Text = "Volume",
+                BasicTooltipText = "Volume controls for alerts with sound.",
+                AutoSizeWidth = true,
+                Location = new Point(
+                                Control.ControlStandard.ControlOffset.X,
+                                alertFadeDelayLabel.Bottom + Dropdown.ControlStandard.ControlOffset.Y)
+            };
+
+            TextBox volumeTextBox = new TextBox
+            {
+                Parent = _alertSettingsWindow,
+                BasicTooltipText = "Volume controls for alert with sound.",
+                Location = new Point(resetAlertContainerPositionButton.Left, volumeLabel.Top),
+                Width = resetAlertContainerPositionButton.Width / 5,
+                Height = volumeLabel.Height,
+                Text = String.Format("{0}", _volumeSetting.Value)
+            };
+
+            TrackBar volumeSlider = new TrackBar
+            {
+                Parent = _alertSettingsWindow,
+                BasicTooltipText = "Volume controls for alert with sound.",
+                MinValue = 0,
+                MaxValue = 100,
+                Value = _volumeSetting.Value,
+                SmallStep = true,
+                Location = new Point(volumeTextBox.Right + Control.ControlStandard.ControlOffset.X, volumeLabel.Top),
+                Width = resetAlertContainerPositionButton.Width - volumeTextBox.Width - Control.ControlStandard.ControlOffset.X
+            };
+
+            volumeTextBox.TextChanged += delegate {
+                int cursorIndex = volumeTextBox.CursorIndex;
+                int value;
+                if (int.TryParse(volumeTextBox.Text, out value) && value >= volumeSlider.MinValue && value <= volumeSlider.MaxValue)
+                {
+                    _alertFadeDelaySetting.Value = value;
+                    volumeSlider.Value = value;
+                    volumeTextBox.Text = String.Format("{0}", value);
+                }
+                else
+                {
+                    volumeTextBox.Text = String.Format("{0}", _volumeSetting.Value);
+                }
+
+                volumeTextBox.CursorIndex = cursorIndex;
+            };
+
+            volumeSlider.ValueChanged += delegate {
+                int value = (int)volumeSlider.Value;
+                _volumeSetting.Value = value;
+                volumeTextBox.Text = String.Format("{0}", value);
+            };
+
             StandardButton closeAlertSettingsButton = new StandardButton {
                 Parent = _alertSettingsWindow,
                 Text = "Close",
@@ -1195,7 +1259,7 @@ namespace Charr.Timers_BlishHUD
             closeAlertSettingsButton.Location =
                 new Point(
                     (_alertSettingsWindow.Left + _alertSettingsWindow.Right) / 2 - closeAlertSettingsButton.Width / 2,
-                    alertFadeDelayTextBox.Bottom + StandardButton.ControlStandard.ControlOffset.Y);
+                    volumeTextBox.Bottom + StandardButton.ControlStandard.ControlOffset.Y);
 
             closeAlertSettingsButton.Click += delegate { _alertSettingsWindow.Hide(); };
 
